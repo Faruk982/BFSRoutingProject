@@ -1,0 +1,114 @@
+version 3
+run General-0-20251020-01:36:26-19284
+attr configname General
+attr datetime 20251020-01:36:26
+attr datetimef 20251020-013626
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsd ""
+attr iterationvarsf ""
+attr measurement ""
+attr network bfsroutingproject_new.BFSRoutingNetwork
+attr processid 19284
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+config network bfsroutingproject_new.BFSRoutingNetwork
+config sim-time-limit 10s
+config **.node[*].cmdenv-log-level info
+config qtenv-default-config ""
+config qtenv-default-run 1
+config **.node[*].typename BFSRouter
+config **.node[*].displayString "\"i=block/routing\""
+
+par BFSRoutingNetwork.node[0].port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[0].port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[0].port$o[0].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[0].port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[0].port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[0].port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[1].port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[0].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[1].port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[1].port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[1].port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[1].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[1].port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[1].port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[1].port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[2].port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[0].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[2].port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[2].port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[2].port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[1].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[2].port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[2].port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[2].port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[3].port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node[3].port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node[3].port$o[0].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node[3].port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node[3].port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node[3].port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node[0] typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node[0] address 0
+par BFSRoutingNetwork.node[1] typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node[1] address 1
+par BFSRoutingNetwork.node[2] typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node[2] address 2
+par BFSRoutingNetwork.node[3] typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node[3] address 3
+par BFSRoutingNetwork typename "\"bfsroutingproject_new.BFSRoutingNetwork\""
+
