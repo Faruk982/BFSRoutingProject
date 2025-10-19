@@ -1,5 +1,6 @@
 #include <omnetpp.h>
 #include "BFSRoutingPacket_m.h"
+#include "RSA.h"
 #include <map>
 #include <set>
 #include <queue>
@@ -36,11 +37,20 @@ class BFSRouter : public cSimpleModule {
     // BFS/A* discovery tracking
     std::set<int> processedRequests;  // to avoid processing same request multiple times
     
+    // RSA Encryption for secure routing
+    RSA* rsaCrypto;  // RSA instance for this router
+    bool useEncryption;  // Enable/disable encryption
+    
+    // Store public keys of other nodes (node address -> public key pair)
+    std::map<int, std::pair<long long, long long>> neighborPublicKeys;  // address -> (e, n)
+    
     // Statistics
     int packetsForwarded;
     int packetsDelivered;
     int routeDiscoveriesSent;
     int astarRoutesLearned;
+    int encryptedPacketsSent;
+    int encryptedPacketsReceived;
     
     // Network topology for heuristic (simplified - could be learned)
     int numNodes;
@@ -55,6 +65,11 @@ class BFSRouter : public cSimpleModule {
     double calculateGCost(BFSRoutingPacket *pkt);
     void updateRouteInfo(int destination, BFSRoutingPacket *pkt, int inGate);
     RouteInfo* getBestRoute(int destination);
+    
+    // RSA Encryption methods
+    void encryptRoutingInfo(BFSRoutingPacket *pkt);
+    void decryptRoutingInfo(BFSRoutingPacket *pkt);
+    void storeNeighborPublicKey(int nodeAddress, long long publicKey, long long modulus);
     
     // Helper methods
     void sendRouteDiscovery(int destination);

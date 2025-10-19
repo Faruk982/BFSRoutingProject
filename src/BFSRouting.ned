@@ -3,6 +3,7 @@ package bfsroutingproject_new;
 simple BFSRouter {
     parameters:
         int address;
+        bool useEncryption = default(true);  // Enable RSA encryption for routing info
         @display("i=block/routing");
     gates:
         inout port[];

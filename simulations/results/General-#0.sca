@@ -1,8 +1,8 @@
 version 3
-run General-0-20251020-02:54:40-18800
+run General-0-20251020-03:56:43-18780
 attr configname General
-attr datetime 20251020-02:54:40
-attr datetimef 20251020-025440
+attr datetime 20251020-03:56:43
+attr datetimef 20251020-035643
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network bfsroutingproject_new.BFSRoutingNetwork
-attr processid 18800
+attr processid 18780
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -104,12 +104,16 @@ par BFSRoutingNetwork.node[3].port$o[0].channel per 0
 attr mutable ""
 par BFSRoutingNetwork.node[0] typename "\"bfsroutingproject_new.BFSRouter\""
 par BFSRoutingNetwork.node[0] address 0
+par BFSRoutingNetwork.node[0] useEncryption true
 par BFSRoutingNetwork.node[1] typename "\"bfsroutingproject_new.BFSRouter\""
 par BFSRoutingNetwork.node[1] address 1
+par BFSRoutingNetwork.node[1] useEncryption true
 par BFSRoutingNetwork.node[2] typename "\"bfsroutingproject_new.BFSRouter\""
 par BFSRoutingNetwork.node[2] address 2
+par BFSRoutingNetwork.node[2] useEncryption true
 par BFSRoutingNetwork.node[3] typename "\"bfsroutingproject_new.BFSRouter\""
 par BFSRoutingNetwork.node[3] address 3
+par BFSRoutingNetwork.node[3] useEncryption true
 par BFSRoutingNetwork typename "\"bfsroutingproject_new.BFSRoutingNetwork\""
 par BFSRoutingNetwork numNodes 4
 

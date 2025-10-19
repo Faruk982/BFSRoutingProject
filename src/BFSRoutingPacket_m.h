@@ -40,6 +40,17 @@ class BFSRoutingPacket;
  *     // Quality metrics
  *     double cumulativeDelay = 0.0;  // Total delay accumulated
  *     simtime_t timestamp;           // When packet was created
+ * 
+ *     // RSA Encryption fields - encrypted routing information
+ *     bool isEncrypted = false;          // Flag indicating if routing info is encrypted
+ *     long encryptedHopCount = 0;        // Encrypted hop count
+ *     long encryptedGCost = 0;           // Encrypted g(n) cost
+ *     long encryptedHCost = 0;           // Encrypted h(n) cost
+ *     long encryptedFCost = 0;           // Encrypted f(n) cost
+ * 
+ *     // RSA Public Key of sender (for secure communication)
+ *     long senderPublicKey = 0;          // Public exponent (e)
+ *     long senderModulus = 0;            // Modulus (n)
  * }
  * </pre>
  */
@@ -58,6 +69,13 @@ class BFSRoutingPacket : public ::omnetpp::cPacket
     int path[10] = {0};
     double cumulativeDelay = 0.0;
     omnetpp::simtime_t timestamp = SIMTIME_ZERO;
+    bool isEncrypted_ = false;
+    long encryptedHopCount = 0;
+    long encryptedGCost = 0;
+    long encryptedHCost = 0;
+    long encryptedFCost = 0;
+    long senderPublicKey = 0;
+    long senderModulus = 0;
 
   private:
     void copy(const BFSRoutingPacket& other);
@@ -110,6 +128,27 @@ class BFSRoutingPacket : public ::omnetpp::cPacket
 
     virtual omnetpp::simtime_t getTimestamp() const;
     virtual void setTimestamp(omnetpp::simtime_t timestamp);
+
+    virtual bool isEncrypted() const;
+    virtual void setIsEncrypted(bool isEncrypted);
+
+    virtual long getEncryptedHopCount() const;
+    virtual void setEncryptedHopCount(long encryptedHopCount);
+
+    virtual long getEncryptedGCost() const;
+    virtual void setEncryptedGCost(long encryptedGCost);
+
+    virtual long getEncryptedHCost() const;
+    virtual void setEncryptedHCost(long encryptedHCost);
+
+    virtual long getEncryptedFCost() const;
+    virtual void setEncryptedFCost(long encryptedFCost);
+
+    virtual long getSenderPublicKey() const;
+    virtual void setSenderPublicKey(long senderPublicKey);
+
+    virtual long getSenderModulus() const;
+    virtual void setSenderModulus(long senderModulus);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const BFSRoutingPacket& obj) {obj.parsimPack(b);}

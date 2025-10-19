@@ -5,10 +5,25 @@ Define_Module(BFSRouter);
 void BFSRouter::initialize() {
     myAddress = par("address");
     numNodes = getSystemModule()->par("numNodes");
+    useEncryption = par("useEncryption").boolValue();
+    
+    // Initialize RSA encryption
+    if (useEncryption) {
+        rsaCrypto = new RSA();
+        auto publicKey = rsaCrypto->getPublicKey();
+        EV << "Node " << myAddress << " RSA Keys - Public: (e=" << publicKey.first 
+           << ", n=" << publicKey.second << ")\n";
+        
+        encryptedPacketsSent = 0;
+        encryptedPacketsReceived = 0;
+    } else {
+        rsaCrypto = nullptr;
+    }
     
     // Initialize routing table
     routingTable.clear();
     processedRequests.clear();
+    neighborPublicKeys.clear();
     
     // Initialize self route
     RouteInfo selfRoute;
@@ -45,6 +60,12 @@ void BFSRouter::handleMessage(cMessage *msg) {
         pkt->setPathLength(1);
         pkt->setPath(0, myAddress);
         
+        // Encrypt routing information if enabled
+        if (useEncryption && rsaCrypto) {
+            encryptRoutingInfo(pkt);
+            EV << "Node " << myAddress << " encrypted routing info before sending\n";
+        }
+        
         EV << "Node " << myAddress << " sending test packet to " << pkt->getDestinationAddress() << "\n";
         
         // Broadcast to all neighbors
@@ -62,6 +83,18 @@ void BFSRouter::handleMessage(cMessage *msg) {
     int srcAddr = pkt->getSourceAddress();
     int destAddr = pkt->getDestinationAddress();
     int arrivalGate = pkt->getArrivalGate()->getIndex();
+    
+    // Decrypt routing information if encrypted
+    if (pkt->isEncrypted() && useEncryption && rsaCrypto) {
+        EV << "Node " << myAddress << " received encrypted packet from " << srcAddr << "\n";
+        
+        // Store sender's public key for future communication
+        storeNeighborPublicKey(srcAddr, pkt->getSenderPublicKey(), pkt->getSenderModulus());
+        
+        // Decrypt routing information
+        decryptRoutingInfo(pkt);
+        encryptedPacketsReceived++;
+    }
     
     EV << "Node " << myAddress << " received packet from " << srcAddr 
        << " to " << destAddr << " via gate " << arrivalGate << "\n";
@@ -134,6 +167,11 @@ void BFSRouter::handleMessage(cMessage *msg) {
             route.useCount++;
             route.timestamp = simTime();
             
+            // Encrypt before forwarding
+            if (useEncryption && rsaCrypto) {
+                encryptRoutingInfo(pkt);
+            }
+            
             send(pkt, "port$o", route.nextHopGate);
         } else {
             EV << "Current route not optimal. Dropping packet.\n";
@@ -146,7 +184,14 @@ void BFSRouter::handleMessage(cMessage *msg) {
         bool forwarded = false;
         for (int i = 0; i < gateSize("port"); i++) {
             if (i != arrivalGate && gate("port$o", i)->isConnected()) {
-                send(pkt->dup(), "port$o", i);
+                BFSRoutingPacket *dupPkt = pkt->dup();
+                
+                // Encrypt before broadcasting
+                if (useEncryption && rsaCrypto) {
+                    encryptRoutingInfo(dupPkt);
+                }
+                
+                send(dupPkt, "port$o", i);
                 forwarded = true;
             }
         }
@@ -225,7 +270,79 @@ RouteInfo* BFSRouter::getBestRoute(int destAddr) {
     return nullptr;
 }
 
+void BFSRouter::encryptRoutingInfo(BFSRoutingPacket *pkt) {
+    if (!rsaCrypto) return;
+    
+    try {
+        // Encrypt routing metrics
+        pkt->setEncryptedHopCount(rsaCrypto->encryptRoutingInfo(pkt->getHopCount()));
+        pkt->setEncryptedGCost(rsaCrypto->encryptDouble(pkt->getGCost()));
+        pkt->setEncryptedHCost(rsaCrypto->encryptDouble(pkt->getHCost()));
+        pkt->setEncryptedFCost(rsaCrypto->encryptDouble(pkt->getFCost()));
+        
+        // Attach sender's public key
+        auto publicKey = rsaCrypto->getPublicKey();
+        pkt->setSenderPublicKey(publicKey.first);
+        pkt->setSenderModulus(publicKey.second);
+        
+        // Mark as encrypted
+        pkt->setIsEncrypted(true);
+        
+        encryptedPacketsSent++;
+        
+        EV_DETAIL << "Encrypted routing info: hopCount=" << pkt->getHopCount() 
+                  << " -> " << pkt->getEncryptedHopCount() << "\n";
+    } catch (const std::exception& e) {
+        EV_WARN << "Encryption failed: " << e.what() << "\n";
+    }
+}
+
+void BFSRouter::decryptRoutingInfo(BFSRoutingPacket *pkt) {
+    if (!rsaCrypto || !pkt->isEncrypted()) return;
+    
+    try {
+        // Decrypt routing metrics
+        long long decryptedHopCount = rsaCrypto->decryptRoutingInfo(pkt->getEncryptedHopCount());
+        double decryptedGCost = rsaCrypto->decryptDouble(pkt->getEncryptedGCost());
+        double decryptedHCost = rsaCrypto->decryptDouble(pkt->getEncryptedHCost());
+        double decryptedFCost = rsaCrypto->decryptDouble(pkt->getEncryptedFCost());
+        
+        // Update packet with decrypted values
+        pkt->setHopCount(static_cast<int>(decryptedHopCount));
+        pkt->setGCost(decryptedGCost);
+        pkt->setHCost(decryptedHCost);
+        pkt->setFCost(decryptedFCost);
+        
+        EV_DETAIL << "Decrypted routing info: " << pkt->getEncryptedHopCount() 
+                  << " -> hopCount=" << pkt->getHopCount() << "\n";
+        EV_DETAIL << "Decrypted costs: g=" << decryptedGCost 
+                  << ", h=" << decryptedHCost << ", f=" << decryptedFCost << "\n";
+    } catch (const std::exception& e) {
+        EV_WARN << "Decryption failed: " << e.what() << "\n";
+    }
+}
+
+void BFSRouter::storeNeighborPublicKey(int nodeAddress, long long publicKey, long long modulus) {
+    if (neighborPublicKeys.find(nodeAddress) == neighborPublicKeys.end()) {
+        neighborPublicKeys[nodeAddress] = {publicKey, modulus};
+        EV << "Node " << myAddress << " stored public key of node " << nodeAddress 
+           << ": (e=" << publicKey << ", n=" << modulus << ")\n";
+    }
+}
+
 void BFSRouter::finish() {
     EV << "Node " << myAddress << " finishing simulation\n";
     EV << "Routes learned: " << routingTable.size() << "\n";
+    
+    if (useEncryption) {
+        EV << "Encrypted packets sent: " << encryptedPacketsSent << "\n";
+        EV << "Encrypted packets received: " << encryptedPacketsReceived << "\n";
+        EV << "Neighbor public keys stored: " << neighborPublicKeys.size() << "\n";
+        
+        // Cleanup RSA
+        if (rsaCrypto) {
+            delete rsaCrypto;
+            rsaCrypto = nullptr;
+        }
+    }
 }

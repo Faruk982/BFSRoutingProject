@@ -189,6 +189,13 @@ void BFSRoutingPacket::copy(const BFSRoutingPacket& other)
     }
     this->cumulativeDelay = other.cumulativeDelay;
     this->timestamp = other.timestamp;
+    this->isEncrypted_ = other.isEncrypted_;
+    this->encryptedHopCount = other.encryptedHopCount;
+    this->encryptedGCost = other.encryptedGCost;
+    this->encryptedHCost = other.encryptedHCost;
+    this->encryptedFCost = other.encryptedFCost;
+    this->senderPublicKey = other.senderPublicKey;
+    this->senderModulus = other.senderModulus;
 }
 
 void BFSRoutingPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -206,6 +213,13 @@ void BFSRoutingPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimArrayPacking(b,this->path,10);
     doParsimPacking(b,this->cumulativeDelay);
     doParsimPacking(b,this->timestamp);
+    doParsimPacking(b,this->isEncrypted_);
+    doParsimPacking(b,this->encryptedHopCount);
+    doParsimPacking(b,this->encryptedGCost);
+    doParsimPacking(b,this->encryptedHCost);
+    doParsimPacking(b,this->encryptedFCost);
+    doParsimPacking(b,this->senderPublicKey);
+    doParsimPacking(b,this->senderModulus);
 }
 
 void BFSRoutingPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -223,6 +237,13 @@ void BFSRoutingPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimArrayUnpacking(b,this->path,10);
     doParsimUnpacking(b,this->cumulativeDelay);
     doParsimUnpacking(b,this->timestamp);
+    doParsimUnpacking(b,this->isEncrypted_);
+    doParsimUnpacking(b,this->encryptedHopCount);
+    doParsimUnpacking(b,this->encryptedGCost);
+    doParsimUnpacking(b,this->encryptedHCost);
+    doParsimUnpacking(b,this->encryptedFCost);
+    doParsimUnpacking(b,this->senderPublicKey);
+    doParsimUnpacking(b,this->senderModulus);
 }
 
 const char * BFSRoutingPacket::getType() const
@@ -352,6 +373,76 @@ void BFSRoutingPacket::setTimestamp(omnetpp::simtime_t timestamp)
     this->timestamp = timestamp;
 }
 
+bool BFSRoutingPacket::isEncrypted() const
+{
+    return this->isEncrypted_;
+}
+
+void BFSRoutingPacket::setIsEncrypted(bool isEncrypted)
+{
+    this->isEncrypted_ = isEncrypted;
+}
+
+long BFSRoutingPacket::getEncryptedHopCount() const
+{
+    return this->encryptedHopCount;
+}
+
+void BFSRoutingPacket::setEncryptedHopCount(long encryptedHopCount)
+{
+    this->encryptedHopCount = encryptedHopCount;
+}
+
+long BFSRoutingPacket::getEncryptedGCost() const
+{
+    return this->encryptedGCost;
+}
+
+void BFSRoutingPacket::setEncryptedGCost(long encryptedGCost)
+{
+    this->encryptedGCost = encryptedGCost;
+}
+
+long BFSRoutingPacket::getEncryptedHCost() const
+{
+    return this->encryptedHCost;
+}
+
+void BFSRoutingPacket::setEncryptedHCost(long encryptedHCost)
+{
+    this->encryptedHCost = encryptedHCost;
+}
+
+long BFSRoutingPacket::getEncryptedFCost() const
+{
+    return this->encryptedFCost;
+}
+
+void BFSRoutingPacket::setEncryptedFCost(long encryptedFCost)
+{
+    this->encryptedFCost = encryptedFCost;
+}
+
+long BFSRoutingPacket::getSenderPublicKey() const
+{
+    return this->senderPublicKey;
+}
+
+void BFSRoutingPacket::setSenderPublicKey(long senderPublicKey)
+{
+    this->senderPublicKey = senderPublicKey;
+}
+
+long BFSRoutingPacket::getSenderModulus() const
+{
+    return this->senderModulus;
+}
+
+void BFSRoutingPacket::setSenderModulus(long senderModulus)
+{
+    this->senderModulus = senderModulus;
+}
+
 class BFSRoutingPacketDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -369,6 +460,13 @@ class BFSRoutingPacketDescriptor : public omnetpp::cClassDescriptor
         FIELD_path,
         FIELD_cumulativeDelay,
         FIELD_timestamp,
+        FIELD_isEncrypted,
+        FIELD_encryptedHopCount,
+        FIELD_encryptedGCost,
+        FIELD_encryptedHCost,
+        FIELD_encryptedFCost,
+        FIELD_senderPublicKey,
+        FIELD_senderModulus,
     };
   public:
     BFSRoutingPacketDescriptor();
@@ -435,7 +533,7 @@ const char *BFSRoutingPacketDescriptor::getProperty(const char *propertyName) co
 int BFSRoutingPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 12+base->getFieldCount() : 12;
+    return base ? 19+base->getFieldCount() : 19;
 }
 
 unsigned int BFSRoutingPacketDescriptor::getFieldTypeFlags(int field) const
@@ -459,8 +557,15 @@ unsigned int BFSRoutingPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISARRAY | FD_ISEDITABLE,    // FIELD_path
         FD_ISEDITABLE,    // FIELD_cumulativeDelay
         FD_ISEDITABLE,    // FIELD_timestamp
+        FD_ISEDITABLE,    // FIELD_isEncrypted
+        FD_ISEDITABLE,    // FIELD_encryptedHopCount
+        FD_ISEDITABLE,    // FIELD_encryptedGCost
+        FD_ISEDITABLE,    // FIELD_encryptedHCost
+        FD_ISEDITABLE,    // FIELD_encryptedFCost
+        FD_ISEDITABLE,    // FIELD_senderPublicKey
+        FD_ISEDITABLE,    // FIELD_senderModulus
     };
-    return (field >= 0 && field < 12) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 19) ? fieldTypeFlags[field] : 0;
 }
 
 const char *BFSRoutingPacketDescriptor::getFieldName(int field) const
@@ -484,8 +589,15 @@ const char *BFSRoutingPacketDescriptor::getFieldName(int field) const
         "path",
         "cumulativeDelay",
         "timestamp",
+        "isEncrypted",
+        "encryptedHopCount",
+        "encryptedGCost",
+        "encryptedHCost",
+        "encryptedFCost",
+        "senderPublicKey",
+        "senderModulus",
     };
-    return (field >= 0 && field < 12) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 19) ? fieldNames[field] : nullptr;
 }
 
 int BFSRoutingPacketDescriptor::findField(const char *fieldName) const
@@ -504,6 +616,13 @@ int BFSRoutingPacketDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "path") == 0) return baseIndex + 9;
     if (strcmp(fieldName, "cumulativeDelay") == 0) return baseIndex + 10;
     if (strcmp(fieldName, "timestamp") == 0) return baseIndex + 11;
+    if (strcmp(fieldName, "isEncrypted") == 0) return baseIndex + 12;
+    if (strcmp(fieldName, "encryptedHopCount") == 0) return baseIndex + 13;
+    if (strcmp(fieldName, "encryptedGCost") == 0) return baseIndex + 14;
+    if (strcmp(fieldName, "encryptedHCost") == 0) return baseIndex + 15;
+    if (strcmp(fieldName, "encryptedFCost") == 0) return baseIndex + 16;
+    if (strcmp(fieldName, "senderPublicKey") == 0) return baseIndex + 17;
+    if (strcmp(fieldName, "senderModulus") == 0) return baseIndex + 18;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -528,8 +647,15 @@ const char *BFSRoutingPacketDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_path
         "double",    // FIELD_cumulativeDelay
         "omnetpp::simtime_t",    // FIELD_timestamp
+        "bool",    // FIELD_isEncrypted
+        "long",    // FIELD_encryptedHopCount
+        "long",    // FIELD_encryptedGCost
+        "long",    // FIELD_encryptedHCost
+        "long",    // FIELD_encryptedFCost
+        "long",    // FIELD_senderPublicKey
+        "long",    // FIELD_senderModulus
     };
-    return (field >= 0 && field < 12) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 19) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **BFSRoutingPacketDescriptor::getFieldPropertyNames(int field) const
@@ -625,6 +751,13 @@ std::string BFSRoutingPacketDescriptor::getFieldValueAsString(omnetpp::any_ptr o
         case FIELD_path: return long2string(pp->getPath(i));
         case FIELD_cumulativeDelay: return double2string(pp->getCumulativeDelay());
         case FIELD_timestamp: return simtime2string(pp->getTimestamp());
+        case FIELD_isEncrypted: return bool2string(pp->isEncrypted());
+        case FIELD_encryptedHopCount: return long2string(pp->getEncryptedHopCount());
+        case FIELD_encryptedGCost: return long2string(pp->getEncryptedGCost());
+        case FIELD_encryptedHCost: return long2string(pp->getEncryptedHCost());
+        case FIELD_encryptedFCost: return long2string(pp->getEncryptedFCost());
+        case FIELD_senderPublicKey: return long2string(pp->getSenderPublicKey());
+        case FIELD_senderModulus: return long2string(pp->getSenderModulus());
         default: return "";
     }
 }
@@ -653,6 +786,13 @@ void BFSRoutingPacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, 
         case FIELD_path: pp->setPath(i,string2long(value)); break;
         case FIELD_cumulativeDelay: pp->setCumulativeDelay(string2double(value)); break;
         case FIELD_timestamp: pp->setTimestamp(string2simtime(value)); break;
+        case FIELD_isEncrypted: pp->setIsEncrypted(string2bool(value)); break;
+        case FIELD_encryptedHopCount: pp->setEncryptedHopCount(string2long(value)); break;
+        case FIELD_encryptedGCost: pp->setEncryptedGCost(string2long(value)); break;
+        case FIELD_encryptedHCost: pp->setEncryptedHCost(string2long(value)); break;
+        case FIELD_encryptedFCost: pp->setEncryptedFCost(string2long(value)); break;
+        case FIELD_senderPublicKey: pp->setSenderPublicKey(string2long(value)); break;
+        case FIELD_senderModulus: pp->setSenderModulus(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BFSRoutingPacket'", field);
     }
 }
@@ -679,6 +819,13 @@ omnetpp::cValue BFSRoutingPacketDescriptor::getFieldValue(omnetpp::any_ptr objec
         case FIELD_path: return pp->getPath(i);
         case FIELD_cumulativeDelay: return pp->getCumulativeDelay();
         case FIELD_timestamp: return pp->getTimestamp().dbl();
+        case FIELD_isEncrypted: return pp->isEncrypted();
+        case FIELD_encryptedHopCount: return (omnetpp::intval_t)(pp->getEncryptedHopCount());
+        case FIELD_encryptedGCost: return (omnetpp::intval_t)(pp->getEncryptedGCost());
+        case FIELD_encryptedHCost: return (omnetpp::intval_t)(pp->getEncryptedHCost());
+        case FIELD_encryptedFCost: return (omnetpp::intval_t)(pp->getEncryptedFCost());
+        case FIELD_senderPublicKey: return (omnetpp::intval_t)(pp->getSenderPublicKey());
+        case FIELD_senderModulus: return (omnetpp::intval_t)(pp->getSenderModulus());
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'BFSRoutingPacket' as cValue -- field index out of range?", field);
     }
 }
@@ -707,6 +854,13 @@ void BFSRoutingPacketDescriptor::setFieldValue(omnetpp::any_ptr object, int fiel
         case FIELD_path: pp->setPath(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_cumulativeDelay: pp->setCumulativeDelay(value.doubleValue()); break;
         case FIELD_timestamp: pp->setTimestamp(value.doubleValue()); break;
+        case FIELD_isEncrypted: pp->setIsEncrypted(value.boolValue()); break;
+        case FIELD_encryptedHopCount: pp->setEncryptedHopCount(omnetpp::checked_int_cast<long>(value.intValue())); break;
+        case FIELD_encryptedGCost: pp->setEncryptedGCost(omnetpp::checked_int_cast<long>(value.intValue())); break;
+        case FIELD_encryptedHCost: pp->setEncryptedHCost(omnetpp::checked_int_cast<long>(value.intValue())); break;
+        case FIELD_encryptedFCost: pp->setEncryptedFCost(omnetpp::checked_int_cast<long>(value.intValue())); break;
+        case FIELD_senderPublicKey: pp->setSenderPublicKey(omnetpp::checked_int_cast<long>(value.intValue())); break;
+        case FIELD_senderModulus: pp->setSenderModulus(omnetpp::checked_int_cast<long>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BFSRoutingPacket'", field);
     }
 }
