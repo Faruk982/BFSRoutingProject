@@ -10,9 +10,10 @@ simple BFSRouter {
 
 network BFSRoutingNetwork {
     parameters:
+        int numNodes = 4;
         @display("bgb=800,400");
     submodules:
-        node[4]: BFSRouter {
+        node[numNodes]: BFSRouter {
             address = index;
             @display("p=100+index*200,200");
         }

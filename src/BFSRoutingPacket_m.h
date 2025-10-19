@@ -27,6 +27,19 @@ class BFSRoutingPacket;
  *     int destinationAddress;
  *     int hopCount = 0;
  *     int requestId;
+ * 
+ *     // A* algorithm fields
+ *     double gCost = 0.0;        // Actual cost from source (g(n))
+ *     double hCost = 0.0;        // Heuristic cost to destination (h(n))
+ *     double fCost = 0.0;        // Total cost f(n) = g(n) + h(n)
+ * 
+ *     // Path tracking
+ *     int pathLength = 0;        // Number of nodes in path
+ *     int path[10];              // Stores the path taken (node addresses)
+ * 
+ *     // Quality metrics
+ *     double cumulativeDelay = 0.0;  // Total delay accumulated
+ *     simtime_t timestamp;           // When packet was created
  * }
  * </pre>
  */
@@ -38,6 +51,13 @@ class BFSRoutingPacket : public ::omnetpp::cPacket
     int destinationAddress = 0;
     int hopCount = 0;
     int requestId = 0;
+    double gCost = 0.0;
+    double hCost = 0.0;
+    double fCost = 0.0;
+    int pathLength = 0;
+    int path[10] = {0};
+    double cumulativeDelay = 0.0;
+    omnetpp::simtime_t timestamp = SIMTIME_ZERO;
 
   private:
     void copy(const BFSRoutingPacket& other);
@@ -68,6 +88,28 @@ class BFSRoutingPacket : public ::omnetpp::cPacket
 
     virtual int getRequestId() const;
     virtual void setRequestId(int requestId);
+
+    virtual double getGCost() const;
+    virtual void setGCost(double gCost);
+
+    virtual double getHCost() const;
+    virtual void setHCost(double hCost);
+
+    virtual double getFCost() const;
+    virtual void setFCost(double fCost);
+
+    virtual int getPathLength() const;
+    virtual void setPathLength(int pathLength);
+
+    virtual size_t getPathArraySize() const;
+    virtual int getPath(size_t k) const;
+    virtual void setPath(size_t k, int path);
+
+    virtual double getCumulativeDelay() const;
+    virtual void setCumulativeDelay(double cumulativeDelay);
+
+    virtual omnetpp::simtime_t getTimestamp() const;
+    virtual void setTimestamp(omnetpp::simtime_t timestamp);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const BFSRoutingPacket& obj) {obj.parsimPack(b);}

@@ -180,6 +180,15 @@ void BFSRoutingPacket::copy(const BFSRoutingPacket& other)
     this->destinationAddress = other.destinationAddress;
     this->hopCount = other.hopCount;
     this->requestId = other.requestId;
+    this->gCost = other.gCost;
+    this->hCost = other.hCost;
+    this->fCost = other.fCost;
+    this->pathLength = other.pathLength;
+    for (size_t i = 0; i < 10; i++) {
+        this->path[i] = other.path[i];
+    }
+    this->cumulativeDelay = other.cumulativeDelay;
+    this->timestamp = other.timestamp;
 }
 
 void BFSRoutingPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -190,6 +199,13 @@ void BFSRoutingPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->destinationAddress);
     doParsimPacking(b,this->hopCount);
     doParsimPacking(b,this->requestId);
+    doParsimPacking(b,this->gCost);
+    doParsimPacking(b,this->hCost);
+    doParsimPacking(b,this->fCost);
+    doParsimPacking(b,this->pathLength);
+    doParsimArrayPacking(b,this->path,10);
+    doParsimPacking(b,this->cumulativeDelay);
+    doParsimPacking(b,this->timestamp);
 }
 
 void BFSRoutingPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -200,6 +216,13 @@ void BFSRoutingPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->destinationAddress);
     doParsimUnpacking(b,this->hopCount);
     doParsimUnpacking(b,this->requestId);
+    doParsimUnpacking(b,this->gCost);
+    doParsimUnpacking(b,this->hCost);
+    doParsimUnpacking(b,this->fCost);
+    doParsimUnpacking(b,this->pathLength);
+    doParsimArrayUnpacking(b,this->path,10);
+    doParsimUnpacking(b,this->cumulativeDelay);
+    doParsimUnpacking(b,this->timestamp);
 }
 
 const char * BFSRoutingPacket::getType() const
@@ -252,6 +275,83 @@ void BFSRoutingPacket::setRequestId(int requestId)
     this->requestId = requestId;
 }
 
+double BFSRoutingPacket::getGCost() const
+{
+    return this->gCost;
+}
+
+void BFSRoutingPacket::setGCost(double gCost)
+{
+    this->gCost = gCost;
+}
+
+double BFSRoutingPacket::getHCost() const
+{
+    return this->hCost;
+}
+
+void BFSRoutingPacket::setHCost(double hCost)
+{
+    this->hCost = hCost;
+}
+
+double BFSRoutingPacket::getFCost() const
+{
+    return this->fCost;
+}
+
+void BFSRoutingPacket::setFCost(double fCost)
+{
+    this->fCost = fCost;
+}
+
+int BFSRoutingPacket::getPathLength() const
+{
+    return this->pathLength;
+}
+
+void BFSRoutingPacket::setPathLength(int pathLength)
+{
+    this->pathLength = pathLength;
+}
+
+size_t BFSRoutingPacket::getPathArraySize() const
+{
+    return 10;
+}
+
+int BFSRoutingPacket::getPath(size_t k) const
+{
+    if (k >= 10) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)10, (unsigned long)k);
+    return this->path[k];
+}
+
+void BFSRoutingPacket::setPath(size_t k, int path)
+{
+    if (k >= 10) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)10, (unsigned long)k);
+    this->path[k] = path;
+}
+
+double BFSRoutingPacket::getCumulativeDelay() const
+{
+    return this->cumulativeDelay;
+}
+
+void BFSRoutingPacket::setCumulativeDelay(double cumulativeDelay)
+{
+    this->cumulativeDelay = cumulativeDelay;
+}
+
+omnetpp::simtime_t BFSRoutingPacket::getTimestamp() const
+{
+    return this->timestamp;
+}
+
+void BFSRoutingPacket::setTimestamp(omnetpp::simtime_t timestamp)
+{
+    this->timestamp = timestamp;
+}
+
 class BFSRoutingPacketDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -262,6 +362,13 @@ class BFSRoutingPacketDescriptor : public omnetpp::cClassDescriptor
         FIELD_destinationAddress,
         FIELD_hopCount,
         FIELD_requestId,
+        FIELD_gCost,
+        FIELD_hCost,
+        FIELD_fCost,
+        FIELD_pathLength,
+        FIELD_path,
+        FIELD_cumulativeDelay,
+        FIELD_timestamp,
     };
   public:
     BFSRoutingPacketDescriptor();
@@ -328,7 +435,7 @@ const char *BFSRoutingPacketDescriptor::getProperty(const char *propertyName) co
 int BFSRoutingPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 5+base->getFieldCount() : 5;
+    return base ? 12+base->getFieldCount() : 12;
 }
 
 unsigned int BFSRoutingPacketDescriptor::getFieldTypeFlags(int field) const
@@ -345,8 +452,15 @@ unsigned int BFSRoutingPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_destinationAddress
         FD_ISEDITABLE,    // FIELD_hopCount
         FD_ISEDITABLE,    // FIELD_requestId
+        FD_ISEDITABLE,    // FIELD_gCost
+        FD_ISEDITABLE,    // FIELD_hCost
+        FD_ISEDITABLE,    // FIELD_fCost
+        FD_ISEDITABLE,    // FIELD_pathLength
+        FD_ISARRAY | FD_ISEDITABLE,    // FIELD_path
+        FD_ISEDITABLE,    // FIELD_cumulativeDelay
+        FD_ISEDITABLE,    // FIELD_timestamp
     };
-    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 12) ? fieldTypeFlags[field] : 0;
 }
 
 const char *BFSRoutingPacketDescriptor::getFieldName(int field) const
@@ -363,8 +477,15 @@ const char *BFSRoutingPacketDescriptor::getFieldName(int field) const
         "destinationAddress",
         "hopCount",
         "requestId",
+        "gCost",
+        "hCost",
+        "fCost",
+        "pathLength",
+        "path",
+        "cumulativeDelay",
+        "timestamp",
     };
-    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 12) ? fieldNames[field] : nullptr;
 }
 
 int BFSRoutingPacketDescriptor::findField(const char *fieldName) const
@@ -376,6 +497,13 @@ int BFSRoutingPacketDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "destinationAddress") == 0) return baseIndex + 2;
     if (strcmp(fieldName, "hopCount") == 0) return baseIndex + 3;
     if (strcmp(fieldName, "requestId") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "gCost") == 0) return baseIndex + 5;
+    if (strcmp(fieldName, "hCost") == 0) return baseIndex + 6;
+    if (strcmp(fieldName, "fCost") == 0) return baseIndex + 7;
+    if (strcmp(fieldName, "pathLength") == 0) return baseIndex + 8;
+    if (strcmp(fieldName, "path") == 0) return baseIndex + 9;
+    if (strcmp(fieldName, "cumulativeDelay") == 0) return baseIndex + 10;
+    if (strcmp(fieldName, "timestamp") == 0) return baseIndex + 11;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -393,8 +521,15 @@ const char *BFSRoutingPacketDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_destinationAddress
         "int",    // FIELD_hopCount
         "int",    // FIELD_requestId
+        "double",    // FIELD_gCost
+        "double",    // FIELD_hCost
+        "double",    // FIELD_fCost
+        "int",    // FIELD_pathLength
+        "int",    // FIELD_path
+        "double",    // FIELD_cumulativeDelay
+        "omnetpp::simtime_t",    // FIELD_timestamp
     };
-    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 12) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **BFSRoutingPacketDescriptor::getFieldPropertyNames(int field) const
@@ -433,6 +568,7 @@ int BFSRoutingPacketDescriptor::getFieldArraySize(omnetpp::any_ptr object, int f
     }
     BFSRoutingPacket *pp = omnetpp::fromAnyPtr<BFSRoutingPacket>(object); (void)pp;
     switch (field) {
+        case FIELD_path: return 10;
         default: return 0;
     }
 }
@@ -482,6 +618,13 @@ std::string BFSRoutingPacketDescriptor::getFieldValueAsString(omnetpp::any_ptr o
         case FIELD_destinationAddress: return long2string(pp->getDestinationAddress());
         case FIELD_hopCount: return long2string(pp->getHopCount());
         case FIELD_requestId: return long2string(pp->getRequestId());
+        case FIELD_gCost: return double2string(pp->getGCost());
+        case FIELD_hCost: return double2string(pp->getHCost());
+        case FIELD_fCost: return double2string(pp->getFCost());
+        case FIELD_pathLength: return long2string(pp->getPathLength());
+        case FIELD_path: return long2string(pp->getPath(i));
+        case FIELD_cumulativeDelay: return double2string(pp->getCumulativeDelay());
+        case FIELD_timestamp: return simtime2string(pp->getTimestamp());
         default: return "";
     }
 }
@@ -503,6 +646,13 @@ void BFSRoutingPacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, 
         case FIELD_destinationAddress: pp->setDestinationAddress(string2long(value)); break;
         case FIELD_hopCount: pp->setHopCount(string2long(value)); break;
         case FIELD_requestId: pp->setRequestId(string2long(value)); break;
+        case FIELD_gCost: pp->setGCost(string2double(value)); break;
+        case FIELD_hCost: pp->setHCost(string2double(value)); break;
+        case FIELD_fCost: pp->setFCost(string2double(value)); break;
+        case FIELD_pathLength: pp->setPathLength(string2long(value)); break;
+        case FIELD_path: pp->setPath(i,string2long(value)); break;
+        case FIELD_cumulativeDelay: pp->setCumulativeDelay(string2double(value)); break;
+        case FIELD_timestamp: pp->setTimestamp(string2simtime(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BFSRoutingPacket'", field);
     }
 }
@@ -522,6 +672,13 @@ omnetpp::cValue BFSRoutingPacketDescriptor::getFieldValue(omnetpp::any_ptr objec
         case FIELD_destinationAddress: return pp->getDestinationAddress();
         case FIELD_hopCount: return pp->getHopCount();
         case FIELD_requestId: return pp->getRequestId();
+        case FIELD_gCost: return pp->getGCost();
+        case FIELD_hCost: return pp->getHCost();
+        case FIELD_fCost: return pp->getFCost();
+        case FIELD_pathLength: return pp->getPathLength();
+        case FIELD_path: return pp->getPath(i);
+        case FIELD_cumulativeDelay: return pp->getCumulativeDelay();
+        case FIELD_timestamp: return pp->getTimestamp().dbl();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'BFSRoutingPacket' as cValue -- field index out of range?", field);
     }
 }
@@ -543,6 +700,13 @@ void BFSRoutingPacketDescriptor::setFieldValue(omnetpp::any_ptr object, int fiel
         case FIELD_destinationAddress: pp->setDestinationAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_hopCount: pp->setHopCount(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_requestId: pp->setRequestId(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_gCost: pp->setGCost(value.doubleValue()); break;
+        case FIELD_hCost: pp->setHCost(value.doubleValue()); break;
+        case FIELD_fCost: pp->setFCost(value.doubleValue()); break;
+        case FIELD_pathLength: pp->setPathLength(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_path: pp->setPath(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_cumulativeDelay: pp->setCumulativeDelay(value.doubleValue()); break;
+        case FIELD_timestamp: pp->setTimestamp(value.doubleValue()); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BFSRoutingPacket'", field);
     }
 }

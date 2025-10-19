@@ -1,8 +1,8 @@
 version 3
-run General-0-20251020-01:36:26-19284
+run General-0-20251020-02:54:40-18800
 attr configname General
-attr datetime 20251020-01:36:26
-attr datetimef 20251020-013626
+attr datetime 20251020-02:54:40
+attr datetimef 20251020-025440
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network bfsroutingproject_new.BFSRoutingNetwork
-attr processid 19284
+attr processid 18800
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -111,4 +111,5 @@ par BFSRoutingNetwork.node[2] address 2
 par BFSRoutingNetwork.node[3] typename "\"bfsroutingproject_new.BFSRouter\""
 par BFSRoutingNetwork.node[3] address 3
 par BFSRoutingNetwork typename "\"bfsroutingproject_new.BFSRoutingNetwork\""
+par BFSRoutingNetwork numNodes 4
 
