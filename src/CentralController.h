@@ -32,6 +32,11 @@ class CentralController : public cSimpleModule {
     int totalNodes;
     bool topologyComplete;
     
+    // RSA keys for encryption
+    long long publicKey;   // e
+    long long privateKey;  // d
+    long long modulus;     // n
+    
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
@@ -39,6 +44,13 @@ class CentralController : public cSimpleModule {
     
     void receiveLinkStateInfo(BFSRoutingPacket *pkt);
     void broadcastCompleteTopology();
+    
+    // RSA functions
+    void generateRSAKeys();
+    long long rsaEncrypt(long long message);
+    long long rsaDecrypt(long long ciphertext);
+    long long modPow(long long base, long long exp, long long mod);
+    long long gcd(long long a, long long b);
 };
 
 #endif

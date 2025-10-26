@@ -8,7 +8,11 @@ void CentralController::initialize() {
     uniqueEdges.clear();
     registeredNodes.clear();
     
+    // Generate RSA keys
+    generateRSAKeys();
+    
     EV << "Central Controller initialized, waiting for " << totalNodes << " nodes\n";
+    EV << "RSA Keys - Public: (e=" << publicKey << ", n=" << modulus << ")\n";
 }
 
 void CentralController::handleMessage(cMessage *msg) {
@@ -125,4 +129,67 @@ void CentralController::finish() {
     EV << "Total unique edges: " << uniqueEdges.size() << "\n";
     EV << "Total directed links sent: " << (uniqueEdges.size() * 2) << "\n";
     EV << "========================================\n";
+}
+
+// RSA Helper: Compute GCD
+long long CentralController::gcd(long long a, long long b) {
+    while (b != 0) {
+        long long temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// RSA Helper: Modular exponentiation (base^exp mod mod)
+long long CentralController::modPow(long long base, long long exp, long long mod) {
+    long long result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        exp = exp / 2;
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+// Generate RSA Keys (simple implementation with small primes)
+void CentralController::generateRSAKeys() {
+    // Use small primes > totalNodes (6 nodes)
+    long long p = 11;  // Prime 1
+    long long q = 13;  // Prime 2
+    
+    modulus = p * q;  // n = 143
+    long long phi = (p - 1) * (q - 1);  // φ(n) = 120
+    
+    // Choose e such that 1 < e < φ(n) and gcd(e, φ(n)) = 1
+    publicKey = 7;  // Common choice, coprime with 120
+    
+    // Find d such that (d * e) mod φ(n) = 1
+    // Using extended Euclidean algorithm (simplified)
+    for (long long d = 1; d < phi; d++) {
+        if ((d * publicKey) % phi == 1) {
+            privateKey = d;
+            break;
+        }
+    }
+    
+    EV << "RSA Key Generation Complete:\n";
+    EV << "  p = " << p << ", q = " << q << "\n";
+    EV << "  n = " << modulus << "\n";
+    EV << "  φ(n) = " << phi << "\n";
+    EV << "  Public Key (e) = " << publicKey << "\n";
+    EV << "  Private Key (d) = " << privateKey << "\n";
+}
+
+// Encrypt a message using public key
+long long CentralController::rsaEncrypt(long long message) {
+    return modPow(message, publicKey, modulus);
+}
+
+// Decrypt a ciphertext using private key
+long long CentralController::rsaDecrypt(long long ciphertext) {
+    return modPow(ciphertext, privateKey, modulus);
 }
