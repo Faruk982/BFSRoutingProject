@@ -41,12 +41,16 @@ class BFSRoutingPacket;
  *     double cumulativeDelay = 0.0;  // Total delay accumulated
  *     simtime_t timestamp;           // When packet was created
  * 
- *     // RSA Encryption fields - encrypted routing information
- *     bool isEncrypted = false;          // Flag indicating if routing info is encrypted
- *     long encryptedHopCount = 0;        // Encrypted hop count
- *     long encryptedGCost = 0;           // Encrypted g(n) cost
- *     long encryptedHCost = 0;           // Encrypted h(n) cost
- *     long encryptedFCost = 0;           // Encrypted f(n) cost
+ *     // RSA Encryption fields - only path information is encrypted
+ *     bool isEncrypted = false;          // Flag indicating if path info is encrypted
+ *     long encryptedHopCount = 0;        // Encrypted hop count (path length)
+ * 
+ *     // NOTE: Costs (g, h, f) are NOT encrypted - they are calculated locally
+ *     // at each node based on the decrypted hop count and local measurements
+ *     // Only the encrypted fields below are used:
+ *     long encryptedGCost = 0;           // Reserved (not used)
+ *     long encryptedHCost = 0;           // Reserved (not used)
+ *     long encryptedFCost = 0;           // Reserved (not used)
  * 
  *     // RSA Public Key of sender (for secure communication)
  *     long senderPublicKey = 0;          // Public exponent (e)

@@ -1,10 +1,11 @@
 #include <omnetpp.h>
 #include "BFSRoutingPacket_m.h"
-#include "RSA.h"
+// #include "RSA.h"  // Disabled for now
 #include <map>
 #include <set>
 #include <queue>
 #include <vector>
+#include <sstream>    // For std::stringstream
 
 using namespace omnetpp;
 
@@ -24,21 +25,34 @@ struct RouteInfo {
                   hopCount(0), useCount(0), successRate(1.0) {}
 };
 
+// Neighbor information in adjacency list
+struct Neighbor {
+    int nodeId;
+    double delay;
+    int gateIndex;  // For local routing
+    
+    Neighbor(int id, double d, int gate = -1) : nodeId(id), delay(d), gateIndex(gate) {}
+};
+
 class BFSRouter : public cSimpleModule {
   private:
     int myAddress;
     
-    // A* Path memory: stores learned routes with cost information
+    // Adjacency list representation of the graph
+    std::map<int, std::vector<Neighbor>> adjacencyList;  // node -> list of neighbors
+    
+    // Routing table with optimal paths (calculated by A*)
     std::map<int, RouteInfo> routingTable;  // destination -> route info
     
-    // For A* discovery - track best paths found so far
-    std::map<int, std::map<int, double>> bestGCosts;  // [destination][node] -> best g cost
+    bool topologyComplete;  // Have we received all topology info?
+    std::set<int> knownNodes;  // All nodes in the network
     
-    // BFS/A* discovery tracking
-    std::set<int> processedRequests;  // to avoid processing same request multiple times
+    // Flood control - track which topology messages we've already seen
+    std::set<std::string> receivedTopology;  // Track "fromNode_toNode" pairs already seen
     
-    // RSA Encryption for secure routing
-    RSA* rsaCrypto;  // RSA instance for this router
+    // RSA Encryption disabled for now
+    // RSA* rsaCrypto;  // Temporarily disabled
+    void* rsaCrypto;  // Placeholder
     bool useEncryption;  // Enable/disable encryption
     
     // Store public keys of other nodes (node address -> public key pair)
@@ -65,6 +79,14 @@ class BFSRouter : public cSimpleModule {
     double calculateGCost(BFSRoutingPacket *pkt);
     void updateRouteInfo(int destination, BFSRoutingPacket *pkt, int inGate);
     RouteInfo* getBestRoute(int destination);
+    
+    // Link-State Routing with Central Controller
+    void discoverLocalTopology();  // Learn about directly connected neighbors
+    void sendLinkStateToController();  // Send link state to central controller
+    void receiveTopologyFromController(BFSRoutingPacket *pkt);  // Receive complete topology from controller
+    void calculateAllPaths();       // Run A* for all destinations
+    void runAstar(int destination); // A* algorithm for specific destination
+    int findGateToNeighbor(int neighborId);  // Find gate index to specific neighbor
     
     // RSA Encryption methods
     void encryptRoutingInfo(BFSRoutingPacket *pkt);

@@ -1,8 +1,8 @@
 version 3
-run General-0-20251020-03:56:43-18780
+run General-0-20251026-16:38:53-17072
 attr configname General
-attr datetime 20251020-03:56:43
-attr datetimef 20251020-035643
+attr datetime 20251026-16:38:53
+attr datetimef 20251026-163853
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,110 +10,248 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network bfsroutingproject_new.BFSRoutingNetwork
-attr processid 18780
+attr processid 17072
 attr repetition 0
 attr replication #0
 attr resultdir results
 attr runnumber 0
 attr seedset 0
 config network bfsroutingproject_new.BFSRoutingNetwork
-config sim-time-limit 10s
-config **.node[*].cmdenv-log-level info
+config sim-time-limit 20s
+config **.cmdenv-log-level info
 config qtenv-default-config ""
 config qtenv-default-run 1
-config **.node[*].typename BFSRouter
-config **.node[*].displayString "\"i=block/routing\""
+config **.animationSpeed 1
+config **.displayString "\"i=block/routing\""
 
-par BFSRoutingNetwork.node[0].port$o[0].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[0].port$o[0].channel disabled false
+par BFSRoutingNetwork.node0.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node0.port$o[0].channel disabled false
 attr mutable ""
-par BFSRoutingNetwork.node[0].port$o[0].channel delay 0.1s
-attr mutable ""
-attr unit s
-par BFSRoutingNetwork.node[0].port$o[0].channel datarate 1e+06bps
-attr mutable ""
-attr unit bps
-par BFSRoutingNetwork.node[0].port$o[0].channel ber 0
-attr mutable ""
-par BFSRoutingNetwork.node[0].port$o[0].channel per 0
-attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[0].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[1].port$o[0].channel disabled false
-attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[0].channel delay 0.1s
+par BFSRoutingNetwork.node0.port$o[0].channel delay 0.05s
 attr mutable ""
 attr unit s
-par BFSRoutingNetwork.node[1].port$o[0].channel datarate 1e+06bps
+par BFSRoutingNetwork.node0.port$o[0].channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
-par BFSRoutingNetwork.node[1].port$o[0].channel ber 0
+par BFSRoutingNetwork.node0.port$o[0].channel ber 0
 attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[0].channel per 0
+par BFSRoutingNetwork.node0.port$o[0].channel per 0
 attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[1].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[1].port$o[1].channel disabled false
+par BFSRoutingNetwork.node1.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node1.port$o[0].channel disabled false
 attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[1].channel delay 0.1s
+par BFSRoutingNetwork.node1.port$o[0].channel delay 0.05s
 attr mutable ""
 attr unit s
-par BFSRoutingNetwork.node[1].port$o[1].channel datarate 1e+06bps
+par BFSRoutingNetwork.node1.port$o[0].channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
-par BFSRoutingNetwork.node[1].port$o[1].channel ber 0
+par BFSRoutingNetwork.node1.port$o[0].channel ber 0
 attr mutable ""
-par BFSRoutingNetwork.node[1].port$o[1].channel per 0
+par BFSRoutingNetwork.node1.port$o[0].channel per 0
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[0].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[2].port$o[0].channel disabled false
+par BFSRoutingNetwork.node0.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node0.port$o[1].channel disabled false
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[0].channel delay 0.1s
+par BFSRoutingNetwork.node0.port$o[1].channel delay 0.08s
 attr mutable ""
 attr unit s
-par BFSRoutingNetwork.node[2].port$o[0].channel datarate 1e+06bps
+par BFSRoutingNetwork.node0.port$o[1].channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
-par BFSRoutingNetwork.node[2].port$o[0].channel ber 0
+par BFSRoutingNetwork.node0.port$o[1].channel ber 0
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[0].channel per 0
+par BFSRoutingNetwork.node0.port$o[1].channel per 0
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[1].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[2].port$o[1].channel disabled false
+par BFSRoutingNetwork.node2.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node2.port$o[0].channel disabled false
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[1].channel delay 0.1s
+par BFSRoutingNetwork.node2.port$o[0].channel delay 0.08s
 attr mutable ""
 attr unit s
-par BFSRoutingNetwork.node[2].port$o[1].channel datarate 1e+06bps
+par BFSRoutingNetwork.node2.port$o[0].channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
-par BFSRoutingNetwork.node[2].port$o[1].channel ber 0
+par BFSRoutingNetwork.node2.port$o[0].channel ber 0
 attr mutable ""
-par BFSRoutingNetwork.node[2].port$o[1].channel per 0
+par BFSRoutingNetwork.node2.port$o[0].channel per 0
 attr mutable ""
-par BFSRoutingNetwork.node[3].port$o[0].channel typename "\"ned.DatarateChannel\""
-par BFSRoutingNetwork.node[3].port$o[0].channel disabled false
+par BFSRoutingNetwork.node1.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node1.port$o[1].channel disabled false
 attr mutable ""
-par BFSRoutingNetwork.node[3].port$o[0].channel delay 0.1s
+par BFSRoutingNetwork.node1.port$o[1].channel delay 0.1s
 attr mutable ""
 attr unit s
-par BFSRoutingNetwork.node[3].port$o[0].channel datarate 1e+06bps
+par BFSRoutingNetwork.node1.port$o[1].channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
-par BFSRoutingNetwork.node[3].port$o[0].channel ber 0
+par BFSRoutingNetwork.node1.port$o[1].channel ber 0
 attr mutable ""
-par BFSRoutingNetwork.node[3].port$o[0].channel per 0
+par BFSRoutingNetwork.node1.port$o[1].channel per 0
 attr mutable ""
-par BFSRoutingNetwork.node[0] typename "\"bfsroutingproject_new.BFSRouter\""
-par BFSRoutingNetwork.node[0] address 0
-par BFSRoutingNetwork.node[0] useEncryption true
-par BFSRoutingNetwork.node[1] typename "\"bfsroutingproject_new.BFSRouter\""
-par BFSRoutingNetwork.node[1] address 1
-par BFSRoutingNetwork.node[1] useEncryption true
-par BFSRoutingNetwork.node[2] typename "\"bfsroutingproject_new.BFSRouter\""
-par BFSRoutingNetwork.node[2] address 2
-par BFSRoutingNetwork.node[2] useEncryption true
-par BFSRoutingNetwork.node[3] typename "\"bfsroutingproject_new.BFSRouter\""
-par BFSRoutingNetwork.node[3] address 3
-par BFSRoutingNetwork.node[3] useEncryption true
+par BFSRoutingNetwork.node3.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node3.port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[0].channel delay 0.1s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node3.port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node3.port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node2.port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[1].channel delay 0.07s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node2.port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node2.port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node3.port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[1].channel delay 0.07s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node3.port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node3.port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[2].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node2.port$o[2].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[2].channel delay 0.09s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node2.port$o[2].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node2.port$o[2].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node2.port$o[2].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node4.port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[0].channel delay 0.09s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node4.port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node4.port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[2].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node3.port$o[2].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[2].channel delay 0.06s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node3.port$o[2].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node3.port$o[2].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node3.port$o[2].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[0].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node5.port$o[0].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[0].channel delay 0.06s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node5.port$o[0].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node5.port$o[0].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[0].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node4.port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[1].channel delay 0.05s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node4.port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node4.port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[1].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node5.port$o[1].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[1].channel delay 0.05s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node5.port$o[1].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node5.port$o[1].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node5.port$o[1].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node1.port$o[2].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node1.port$o[2].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node1.port$o[2].channel delay 0.12s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node1.port$o[2].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node1.port$o[2].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node1.port$o[2].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[2].channel typename "\"ned.DatarateChannel\""
+par BFSRoutingNetwork.node4.port$o[2].channel disabled false
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[2].channel delay 0.12s
+attr mutable ""
+attr unit s
+par BFSRoutingNetwork.node4.port$o[2].channel datarate 1e+06bps
+attr mutable ""
+attr unit bps
+par BFSRoutingNetwork.node4.port$o[2].channel ber 0
+attr mutable ""
+par BFSRoutingNetwork.node4.port$o[2].channel per 0
+attr mutable ""
+par BFSRoutingNetwork.controller typename "\"bfsroutingproject_new.CentralController\""
+par BFSRoutingNetwork.controller totalNodes 6
+par BFSRoutingNetwork.node0 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node0 address 0
+par BFSRoutingNetwork.node0 useEncryption true
+par BFSRoutingNetwork.node1 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node1 address 1
+par BFSRoutingNetwork.node1 useEncryption true
+par BFSRoutingNetwork.node2 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node2 address 2
+par BFSRoutingNetwork.node2 useEncryption true
+par BFSRoutingNetwork.node3 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node3 address 3
+par BFSRoutingNetwork.node3 useEncryption true
+par BFSRoutingNetwork.node4 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node4 address 4
+par BFSRoutingNetwork.node4 useEncryption true
+par BFSRoutingNetwork.node5 typename "\"bfsroutingproject_new.BFSRouter\""
+par BFSRoutingNetwork.node5 address 5
+par BFSRoutingNetwork.node5 useEncryption true
 par BFSRoutingNetwork typename "\"bfsroutingproject_new.BFSRoutingNetwork\""
-par BFSRoutingNetwork numNodes 4
+par BFSRoutingNetwork numNodes 6
 

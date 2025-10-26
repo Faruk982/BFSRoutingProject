@@ -1,10 +1,20 @@
 #include "RSA.h"
 
+// Helper GCD function
+static long long gcd(long long a, long long b) {
+    while (b != 0) {
+        long long temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
 RSA::RSA() {
-    // Generate two distinct primes (smaller range for network simulation performance)
-    p = generatePrime(100, 500);
+    // Generate two distinct primes (larger range for better encryption)
+    p = generatePrime(1000, 5000);
     do {
-        q = generatePrime(100, 500);
+        q = generatePrime(1000, 5000);
     } while (q == p);
     
     // Calculate modulus and Euler's totient
@@ -13,7 +23,7 @@ RSA::RSA() {
     
     // Choose public exponent (commonly 65537, but adjust if needed)
     e = 65537;
-    while (std::gcd(e, phi) != 1) {
+    while (gcd(e, phi) != 1) {
         e += 2;
     }
     
@@ -34,7 +44,7 @@ RSA::RSA(long long prime1, long long prime2) {
     phi = (p - 1) * (q - 1);
     
     e = 65537;
-    while (std::gcd(e, phi) != 1) {
+    while (gcd(e, phi) != 1) {
         e += 2;
     }
     
@@ -149,15 +159,13 @@ long long RSA::decryptRoutingInfo(long long encrypted) {
 }
 
 long long RSA::encryptDouble(double value) {
-    // Convert double to long by multiplying by 1000 (3 decimal places precision)
-    long long intValue = static_cast<long long>(value * 1000);
+    // Simple approach: multiply by 10000 for 4 decimal precision
+    // Routing costs are always positive (hop counts, delays)
+    long long intValue = static_cast<long long>(value * 10000);
     
-    // Handle negative values by using offset
-    long long offset = 1000000;
-    intValue += offset;
-    
+    // Safety check: ensure value fits in modulus
     if (intValue >= n) {
-        EV_WARN << "Double value too large, clamping\n";
+        EV_WARN << "Value " << value << " too large for RSA modulus, clamping\n";
         intValue = n - 1;
     }
     
@@ -167,12 +175,8 @@ long long RSA::encryptDouble(double value) {
 double RSA::decryptDouble(long long encrypted) {
     long long decrypted = decrypt(encrypted);
     
-    // Remove offset
-    long long offset = 1000000;
-    decrypted -= offset;
-    
-    // Convert back to double
-    return static_cast<double>(decrypted) / 1000.0;
+    // Simple conversion back to double
+    return static_cast<double>(decrypted) / 10000.0;
 }
 
 long long RSA::encryptWithKey(long long message, long long publicKey, long long modulus) {

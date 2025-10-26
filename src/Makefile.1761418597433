@@ -31,8 +31,7 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/BFSRouter.o $O/CentralController.o $O/BFSRoutingPacket_m.o
-# RSA.o temporarily removed to avoid compilation issues
+OBJS = $O/BFSRouter.o $O/RSA.o $O/BFSRoutingPacket_m.o
 
 # Message files
 MSGFILES = \
@@ -75,6 +74,8 @@ endif
 
 #------------------------------------------------------------------------------
 # User-supplied makefile fragment(s)
+-include makefrag
+
 #------------------------------------------------------------------------------
 
 # Main target
