@@ -46,6 +46,9 @@ class CentralController : public cSimpleModule {
     // Router public keys: routerPublicKeys[routerId] = (e, n)
     std::map<int, std::pair<long long, long long>> routerPublicKeys;
     
+    // Node positions for Manhattan distance heuristic (from NED file)
+    std::map<int, std::pair<int, int>> nodePositions;  // nodeId -> (x, y)
+    
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
@@ -60,6 +63,8 @@ class CentralController : public cSimpleModule {
     void computeAllPaths();
     std::vector<int> runAstarFromController(int source, int destination);
     void sendForwardingTables();
+    void initializeNodePositions();  // Initialize node positions from topology
+    double calculateManhattanDistance(int node1, int node2);  // Heuristic function
     
     // RSA functions for encryption
     long long rsaEncrypt(long long message, long long e, long long n);  // Encrypt with router's public key

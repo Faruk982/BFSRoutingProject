@@ -9,7 +9,11 @@ void CentralController::initialize() {
     registeredNodes.clear();
     routerPublicKeys.clear();
     
+    // Initialize node positions from NED file topology
+    initializeNodePositions();
+    
     EV << "Central Controller initialized, waiting for " << totalNodes << " nodes\n";
+    EV << "Using Manhattan distance heuristic for A* algorithm\n";
 }
 
 void CentralController::handleMessage(cMessage *msg) {
@@ -95,7 +99,7 @@ void CentralController::receiveRouterPublicKey(BFSRoutingPacket *pkt) {
     long long e = pkt->getHopCount();   // Public exponent
     long long n = pkt->getRequestId();  // Modulus
     
-    routerPublicKeys[routerId] = std::make_pair(e, n);
+    routerPublicKeys[routerId] = {e, n};
     
     EV << "\n========================================================\n";
     EV << "  Controller received RSA Public Key from Router " << routerId << "\n";
@@ -165,6 +169,44 @@ void CentralController::broadcastCompleteTopology() {
     EV << "========================================================\n";
     EV << "  Topology broadcast complete!\n";
     EV << "========================================================\n\n";
+}
+
+// Initialize node positions based on NED file topology
+void CentralController::initializeNodePositions() {
+    // Node positions from BFSRouting.ned file
+    // These correspond to the @display("p=x,y") parameters
+    nodePositions[0] = {200, 100};  // node0
+    nodePositions[1] = {600, 100};  // node1
+    nodePositions[2] = {200, 300};  // node2
+    nodePositions[3] = {600, 300};  // node3
+    nodePositions[4] = {200, 500};  // node4
+    nodePositions[5] = {600, 500};  // node5
+    
+    EV << "Node positions initialized for Manhattan distance heuristic:\n";
+    for (const auto& entry : nodePositions) {
+        EV << "  Node " << entry.first << ": (" 
+           << entry.second.first << ", " << entry.second.second << ")\n";
+    }
+}
+
+// Calculate Manhattan distance between two nodes (heuristic for A*)
+double CentralController::calculateManhattanDistance(int node1, int node2) {
+    if (nodePositions.find(node1) == nodePositions.end() || 
+        nodePositions.find(node2) == nodePositions.end()) {
+        return 0;  // Return 0 if positions not found (fallback to Dijkstra)
+    }
+    
+    int x1 = nodePositions[node1].first;
+    int y1 = nodePositions[node1].second;
+    int x2 = nodePositions[node2].first;
+    int y2 = nodePositions[node2].second;
+    
+    // Manhattan distance = |x1 - x2| + |y1 - y2|
+    int dx = (x1 > x2) ? (x1 - x2) : (x2 - x1);  // abs(x1 - x2)
+    int dy = (y1 > y2) ? (y1 - y2) : (y2 - y1);  // abs(y1 - y2)
+    
+    // Normalize to match delay scale (divide by 100 to get reasonable values)
+    return (dx + dy) / 10.0;  // Scale factor to match delay magnitudes
 }
 
 // Build adjacency list from collected edges
@@ -263,13 +305,15 @@ std::vector<int> CentralController::runAstarFromController(int source, int desti
     }
     gCost[source] = 0;
     
-    // Heuristic: Simple estimate (can be improved with actual positions)
-    // For now, use 0 (makes it Dijkstra)
-    double h = 0;
+    // Heuristic: Manhattan distance from source to destination
+    double h = calculateManhattanDistance(source, destination);
     double f = gCost[source] + h;
     
     pq.push({f, source});
     parent[source] = -1;
+    
+    EV << "  A* from " << source << " to " << destination 
+       << " (initial heuristic: " << h << ")\n";
     
     while (!pq.empty()) {
         int current = pq.top().second;
@@ -313,7 +357,8 @@ std::vector<int> CentralController::runAstarFromController(int source, int desti
                     gCost[nextNode] = tentativeG;
                     parent[nextNode] = current;
                     
-                    double heuristic = 0;  // Simple heuristic for now
+                    // Use Manhattan distance as heuristic
+                    double heuristic = calculateManhattanDistance(nextNode, destination);
                     double fCost = tentativeG + heuristic;
                     
                     pq.push({fCost, nextNode});
