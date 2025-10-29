@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <queue>
 
 using namespace omnetpp;
 
@@ -29,8 +30,18 @@ class CentralController : public cSimpleModule {
     
     // Track which nodes have sent their link state
     std::set<int> registeredNodes;
+    
+    // All nodes in the network
+    std::set<int> allNodes;
+    
     int totalNodes;
     bool topologyComplete;
+    
+    // Adjacency list: adj[nodeId] = vector<pair<neighbor, delay>>
+    std::map<int, std::vector<std::pair<int, double>>> adjacencyList;
+    
+    // Forwarding table: forwarding[source][destination] = nextHop
+    std::map<int, std::map<int, int>> forwardingTable;
     
     // RSA keys for encryption
     long long publicKey;   // e
@@ -44,6 +55,12 @@ class CentralController : public cSimpleModule {
     
     void receiveLinkStateInfo(BFSRoutingPacket *pkt);
     void broadcastCompleteTopology();
+    
+    // Centralized path computation
+    void buildAdjacencyList();
+    void computeAllPaths();
+    std::vector<int> runAstarFromController(int source, int destination);
+    void sendForwardingTables();
     
     // RSA functions
     void generateRSAKeys();

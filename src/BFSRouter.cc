@@ -14,6 +14,8 @@ void BFSRouter::initialize() {
     knownNodes.clear();
     receivedTopology.clear();
     topologyComplete = false;
+    forwardingTable.clear();
+    forwardingTableReady = false;
     
     // Initialize statistics
     packetsForwarded = 0;
@@ -78,7 +80,7 @@ void BFSRouter::handleMessage(cMessage *msg) {
         }
         
         if (strcmp(msg->getName(), "sendTest") == 0) {
-            // Send test packet from 0 to 5
+            // Send test packet from 0 to 5 (using old A* routing)
             int destAddr = 5;
             EV << "\n#########################################################\n";
             EV << "# SENDING TEST PACKET: Node " << myAddress << " → Node " << destAddr << "\n";
@@ -108,12 +110,64 @@ void BFSRouter::handleMessage(cMessage *msg) {
             delete msg;
             return;
         }
+        
+        if (strcmp(msg->getName(), "sendTestWithForwarding") == 0) {
+            // Send test packet from 0 to 5 using FORWARDING TABLE
+            int destAddr = 5;
+            EV << "\n#########################################################\n";
+            EV << "# SENDING TEST PACKET (FORWARDING TABLE): Node " << myAddress << " → Node " << destAddr << "\n";
+            EV << "#########################################################\n";
+            
+            if (forwardingTable.find(destAddr) != forwardingTable.end()) {
+                int nextHop = forwardingTable[destAddr];
+                int nextGate = findGateToNeighbor(nextHop);
+                
+                EV << "Forwarding table says: To reach " << destAddr << ", send to next hop " << nextHop << "\n";
+                EV << "Using gate " << nextGate << " to reach neighbor " << nextHop << "\n\n";
+                
+                BFSRoutingPacket *pkt = new BFSRoutingPacket("DATA");
+                pkt->setType("DATA");
+                pkt->setSourceAddress(myAddress);
+                pkt->setDestinationAddress(destAddr);
+                pkt->setHopCount(0);
+                pkt->setTimestamp(simTime());
+                
+                send(pkt, "port$o", nextGate);
+            } else {
+                EV << "ERROR: No forwarding entry for destination " << destAddr << "\n";
+            }
+            delete msg;
+            return;
+        }
     }
     
     // Handle received packets
     BFSRoutingPacket *pkt = check_and_cast<BFSRoutingPacket *>(msg);
     int srcAddr = pkt->getSourceAddress();
     int destAddr = pkt->getDestinationAddress();
+    
+    // Handle forwarding table entries from central controller
+    if (strcmp(pkt->getType(), "FORWARDING_ENTRY") == 0 && srcAddr == -1) {
+        receiveForwardingTable(pkt);
+        delete pkt;
+        return;
+    }
+    
+    // Handle forwarding table completion signal
+    if (strcmp(pkt->getType(), "FORWARDING_COMPLETE") == 0 && srcAddr == -1) {
+        forwardingTableReady = true;
+        EV << "\n*** Node " << myAddress << " received complete forwarding table! ***\n";
+        displayForwardingTable();
+        
+        // PHASE 4: Node 0 sends test packet after receiving forwarding table
+        if (myAddress == 0) {
+            EV << "\n*** Node 0 will send test packet in 0.5s ***\n";
+            scheduleAt(simTime() + 0.5, new cMessage("sendTestWithForwarding"));
+        }
+        
+        delete pkt;
+        return;
+    }
     
     // Handle topology from central controller
     if (strcmp(pkt->getType(), "TOPOLOGY") == 0 && srcAddr == -1) {
@@ -136,13 +190,25 @@ void BFSRouter::handleMessage(cMessage *msg) {
             delete pkt;
             return;
         } else {
-            // Forward using routing table
-            if (routingTable.find(destAddr) != routingTable.end()) {
+            // Forward using forwarding table (preferred) or routing table (fallback)
+            if (forwardingTableReady && forwardingTable.find(destAddr) != forwardingTable.end()) {
+                // Use forwarding table from controller
+                int nextHop = forwardingTable[destAddr];
+                int nextGate = findGateToNeighbor(nextHop);
+                
+                pkt->setHopCount(pkt->getHopCount() + 1);
+                EV << "→ Node " << myAddress << " forwarding to dest=" << destAddr 
+                   << " via nextHop=" << nextHop << " gate=" << nextGate
+                   << " (hop " << pkt->getHopCount() << ") [FORWARDING TABLE]\n";
+                packetsForwarded++;
+                send(pkt, "port$o", nextGate);
+            } else if (routingTable.find(destAddr) != routingTable.end()) {
+                // Fallback to routing table (A* calculated)
                 RouteInfo &route = routingTable[destAddr];
                 pkt->setHopCount(pkt->getHopCount() + 1);
                 EV << "→ Node " << myAddress << " forwarding to dest=" << destAddr 
                    << " via gate " << route.nextHopGate 
-                   << " (hop " << pkt->getHopCount() << ")\n";
+                   << " (hop " << pkt->getHopCount() << ") [ROUTING TABLE]\n";
                 packetsForwarded++;
                 send(pkt, "port$o", route.nextHopGate);
             } else {
@@ -345,6 +411,30 @@ void BFSRouter::receiveTopologyFromController(BFSRoutingPacket *pkt) {
         // Schedule path calculation
         scheduleAt(simTime() + 0.1, new cMessage("calculatePaths"));
     }
+}
+
+void BFSRouter::receiveForwardingTable(BFSRoutingPacket *pkt) {
+    // Extract forwarding entry: hopCount=destination, requestId=nextHop
+    int dest = pkt->getHopCount();
+    int nextHop = pkt->getRequestId();
+    
+    forwardingTable[dest] = nextHop;
+    
+    EV << "Node " << myAddress << " received forwarding entry: dest=" << dest 
+       << " → nextHop=" << nextHop << "\n";
+}
+
+void BFSRouter::displayForwardingTable() {
+    EV << "\n========================================================\n";
+    EV << "  FORWARDING TABLE for Node " << myAddress << "\n";
+    EV << "========================================================\n";
+    EV << "  Destination → NextHop\n";
+    
+    for (const auto& entry : forwardingTable) {
+        EV << "      " << entry.first << " → " << entry.second << "\n";
+    }
+    
+    EV << "========================================================\n\n";
 }
 
 int BFSRouter::findGateToNeighbor(int neighborId) {

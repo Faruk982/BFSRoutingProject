@@ -1,8 +1,8 @@
 version 3
-run General-0-20251026-17:03:13-15284
+run General-0-20251029-21:57:13-2296
 attr configname General
-attr datetime 20251026-17:03:13
-attr datetimef 20251026-170313
+attr datetime 20251029-21:57:13
+attr datetimef 20251029-215713
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network bfsroutingproject_new.BFSRoutingNetwork
-attr processid 15284
+attr processid 2296
 attr repetition 0
 attr replication #0
 attr resultdir results

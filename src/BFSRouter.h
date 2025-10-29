@@ -44,6 +44,10 @@ class BFSRouter : public cSimpleModule {
     // Routing table with optimal paths (calculated by A*)
     std::map<int, RouteInfo> routingTable;  // destination -> route info
     
+    // Forwarding table from controller (destination -> nextHop node)
+    std::map<int, int> forwardingTable;
+    bool forwardingTableReady;  // Have we received forwarding table from controller?
+    
     bool topologyComplete;  // Have we received all topology info?
     std::set<int> knownNodes;  // All nodes in the network
     
@@ -84,6 +88,8 @@ class BFSRouter : public cSimpleModule {
     void discoverLocalTopology();  // Learn about directly connected neighbors
     void sendLinkStateToController();  // Send link state to central controller
     void receiveTopologyFromController(BFSRoutingPacket *pkt);  // Receive complete topology from controller
+    void receiveForwardingTable(BFSRoutingPacket *pkt);  // Receive forwarding table from controller
+    void displayForwardingTable();  // Display received forwarding table
     void calculateAllPaths();       // Run A* for all destinations
     void runAstar(int destination); // A* algorithm for specific destination
     int findGateToNeighbor(int neighborId);  // Find gate index to specific neighbor

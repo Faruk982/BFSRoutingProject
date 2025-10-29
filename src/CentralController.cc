@@ -25,9 +25,18 @@ void CentralController::handleMessage(cMessage *msg) {
         
         // Check if all nodes have registered AND we haven't broadcasted yet
         if (!topologyComplete && registeredNodes.size() == (size_t)totalNodes) {
-            EV << "\n*** All nodes registered! Broadcasting complete topology ***\n";
-            broadcastCompleteTopology();
-            topologyComplete = true;  // Set flag to prevent re-broadcasting
+            EV << "\n*** All nodes registered! Starting centralized path computation ***\n";
+            
+            // Step 1: Build adjacency list
+            buildAdjacencyList();
+            
+            // Step 2: Compute all paths and build forwarding tables
+            computeAllPaths();
+            
+            // Step 3: Send forwarding tables to routers
+            sendForwardingTables();
+            
+            topologyComplete = true;  // Set flag to prevent re-computation
         }
     }
 }
@@ -52,12 +61,17 @@ void CentralController::receiveLinkStateInfo(BFSRoutingPacket *pkt) {
         // Insert into set (automatically handles duplicates)
         uniqueEdges.insert(edge);
         
+        // Add both nodes to allNodes set
+        allNodes.insert(from);
+        allNodes.insert(to);
+        
         EV << "Controller received from Node " << nodeId << ": " 
            << from << " ↔ " << to << " (delay=" << delay << "ms)\n";
     }
     
     EV << "Registered nodes: " << registeredNodes.size() << "/" << totalNodes 
-       << ", Unique edges: " << uniqueEdges.size() << "\n";
+       << ", Unique edges: " << uniqueEdges.size() 
+       << ", Total nodes discovered: " << allNodes.size() << "\n";
 }
 
 void CentralController::broadcastCompleteTopology() {
@@ -118,6 +132,217 @@ void CentralController::broadcastCompleteTopology() {
     
     EV << "========================================================\n";
     EV << "  Topology broadcast complete!\n";
+    EV << "========================================================\n\n";
+}
+
+// Build adjacency list from collected edges
+void CentralController::buildAdjacencyList() {
+    EV << "\n========================================================\n";
+    EV << "  Building Adjacency List from Edges\n";
+    EV << "========================================================\n";
+    
+    adjacencyList.clear();
+    
+    // Traverse all edges and build adjacency list
+    for (const auto& edge : uniqueEdges) {
+        int u = edge.node1;
+        int v = edge.node2;
+        double delay = edge.delay;
+        
+        // Add edge u -> v
+        adjacencyList[u].push_back({v, delay});
+        // Add edge v -> u (undirected graph)
+        adjacencyList[v].push_back({u, delay});
+        
+        EV << "  Added: " << u << " ↔ " << v << " (delay=" << delay << "ms)\n";
+    }
+    
+    // Display adjacency list
+    EV << "\nAdjacency List:\n";
+    for (const auto& node : allNodes) {
+        EV << "  Node " << node << ": ";
+        if (adjacencyList.find(node) != adjacencyList.end()) {
+            for (size_t i = 0; i < adjacencyList[node].size(); i++) {
+                if (i > 0) EV << ", ";
+                EV << adjacencyList[node][i].first 
+                   << "(delay=" << adjacencyList[node][i].second << "ms)";
+            }
+        }
+        EV << "\n";
+    }
+    EV << "========================================================\n\n";
+}
+
+// Compute all shortest paths using A* and build forwarding tables
+void CentralController::computeAllPaths() {
+    EV << "\n========================================================\n";
+    EV << "  Computing All-Pairs Shortest Paths (A* Algorithm)\n";
+    EV << "========================================================\n";
+    
+    forwardingTable.clear();
+    
+    int pathsComputed = 0;
+    
+    // For each source node
+    for (int source : allNodes) {
+        // For each destination node
+        for (int dest : allNodes) {
+            if (source == dest) continue;  // Skip self
+            
+            // Run A* to find path from source to dest
+            std::vector<int> path = runAstarFromController(source, dest);
+            
+            if (path.size() >= 2) {
+                // First hop is the next node after source
+                int nextHop = path[1];
+                forwardingTable[source][dest] = nextHop;
+                
+                EV << "  Path " << source << " → " << dest << ": ";
+                for (size_t i = 0; i < path.size(); i++) {
+                    if (i > 0) EV << " → ";
+                    EV << path[i];
+                }
+                EV << " (NextHop: " << nextHop << ")\n";
+                
+                pathsComputed++;
+            } else {
+                EV << "  Path " << source << " → " << dest << ": NO PATH FOUND\n";
+            }
+        }
+    }
+    
+    EV << "\nTotal paths computed: " << pathsComputed << "\n";
+    EV << "========================================================\n\n";
+}
+
+// A* algorithm implementation in controller
+std::vector<int> CentralController::runAstarFromController(int source, int destination) {
+    // Priority queue: pair<f_cost, nodeId>
+    typedef std::pair<double, int> PII;
+    std::priority_queue<PII, std::vector<PII>, std::greater<PII>> pq;
+    
+    std::map<int, double> gCost;  // Actual cost from source
+    std::map<int, int> parent;    // Parent node in path
+    std::set<int> visited;
+    
+    // Initialize
+    for (int node : allNodes) {
+        gCost[node] = 1e9;  // Infinity
+    }
+    gCost[source] = 0;
+    
+    // Heuristic: Simple estimate (can be improved with actual positions)
+    // For now, use 0 (makes it Dijkstra)
+    double h = 0;
+    double f = gCost[source] + h;
+    
+    pq.push({f, source});
+    parent[source] = -1;
+    
+    while (!pq.empty()) {
+        int current = pq.top().second;
+        pq.pop();
+        
+        if (visited.find(current) != visited.end()) continue;
+        visited.insert(current);
+        
+        // Found destination
+        if (current == destination) {
+            // Reconstruct path
+            std::vector<int> path;
+            int node = destination;
+            while (node != -1) {
+                path.push_back(node);
+                node = parent[node];
+            }
+            
+            // Reverse path (manual reversal)
+            int left = 0, right = path.size() - 1;
+            while (left < right) {
+                int temp = path[left];
+                path[left] = path[right];
+                path[right] = temp;
+                left++;
+                right--;
+            }
+            
+            return path;
+        }
+        
+        // Explore neighbors
+        if (adjacencyList.find(current) != adjacencyList.end()) {
+            for (const auto& neighbor : adjacencyList[current]) {
+                int nextNode = neighbor.first;
+                double edgeDelay = neighbor.second;
+                
+                double tentativeG = gCost[current] + edgeDelay;
+                
+                if (tentativeG < gCost[nextNode]) {
+                    gCost[nextNode] = tentativeG;
+                    parent[nextNode] = current;
+                    
+                    double heuristic = 0;  // Simple heuristic for now
+                    double fCost = tentativeG + heuristic;
+                    
+                    pq.push({fCost, nextNode});
+                }
+            }
+        }
+    }
+    
+    // No path found
+    return std::vector<int>();
+}
+
+// Send forwarding tables to routers
+void CentralController::sendForwardingTables() {
+    EV << "\n========================================================\n";
+    EV << "  Sending Forwarding Tables to Routers\n";
+    EV << "========================================================\n";
+    
+    // For each router
+    for (int routerId : allNodes) {
+        EV << "\nForwarding Table for Node " << routerId << ":\n";
+        EV << "  Destination → NextHop\n";
+        
+        if (forwardingTable.find(routerId) != forwardingTable.end()) {
+            for (const auto& entry : forwardingTable[routerId]) {
+                int dest = entry.first;
+                int nextHop = entry.second;
+                
+                EV << "  " << dest << " → " << nextHop << "\n";
+                
+                // Create packet with forwarding entry
+                BFSRoutingPacket *pkt = new BFSRoutingPacket();
+                pkt->setType("FORWARDING_ENTRY");
+                
+                // Use existing fields to encode forwarding info
+                // hopCount = destination, requestId = nextHop
+                pkt->setHopCount(dest);
+                pkt->setRequestId(nextHop);
+                
+                pkt->setSourceAddress(-1);  // From controller
+                pkt->setDestinationAddress(routerId);
+                pkt->setName("ForwardingEntry");
+                
+                send(pkt, "toRouter$o", routerId);
+            }
+            
+            // Send completion signal
+            BFSRoutingPacket *completePkt = new BFSRoutingPacket();
+            completePkt->setType("FORWARDING_COMPLETE");
+            completePkt->setSourceAddress(-1);
+            completePkt->setDestinationAddress(routerId);
+            completePkt->setName("ForwardingComplete");
+            send(completePkt, "toRouter$o", routerId);
+            
+            EV << "  → Sent " << forwardingTable[routerId].size() 
+               << " forwarding entries to Node " << routerId << "\n";
+        }
+    }
+    
+    EV << "========================================================\n";
+    EV << "  All forwarding tables sent!\n";
     EV << "========================================================\n\n";
 }
 
