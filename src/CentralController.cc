@@ -7,25 +7,38 @@ void CentralController::initialize() {
     topologyComplete = false;
     uniqueEdges.clear();
     registeredNodes.clear();
-    
-    // Generate RSA keys
-    generateRSAKeys();
+    routerPublicKeys.clear();
     
     EV << "Central Controller initialized, waiting for " << totalNodes << " nodes\n";
-    EV << "RSA Keys - Public: (e=" << publicKey << ", n=" << modulus << ")\n";
 }
 
 void CentralController::handleMessage(cMessage *msg) {
     BFSRoutingPacket *pkt = check_and_cast<BFSRoutingPacket *>(msg);
     
+    // Handle RSA public key from routers
+    if (strcmp(pkt->getType(), "RSA_PUBLIC_KEY") == 0) {
+        receiveRouterPublicKey(pkt);
+        delete pkt;
+        return;
+    }
+    
     // Handle link-state registration from routers
     if (strcmp(pkt->getType(), "LINK_STATE") == 0) {
+        // IGNORE link state messages if we've already computed topology
+        if (topologyComplete) {
+            EV << "Controller: Ignoring duplicate LINK_STATE from Node " 
+               << pkt->getSourceAddress() << " (topology already complete)\n";
+            delete pkt;
+            return;
+        }
+        
         receiveLinkStateInfo(pkt);
         delete pkt;
         
-        // Check if all nodes have registered AND we haven't broadcasted yet
-        if (!topologyComplete && registeredNodes.size() == (size_t)totalNodes) {
-            EV << "\n*** All nodes registered! Starting centralized path computation ***\n";
+        // Check if all nodes have registered AND we have all public keys AND we haven't processed yet
+        if (!topologyComplete && registeredNodes.size() == (size_t)totalNodes && 
+            routerPublicKeys.size() == (size_t)totalNodes) {
+            EV << "\n*** All nodes registered with public keys! Starting centralized path computation ***\n";
             
             // Step 1: Build adjacency list
             buildAdjacencyList();
@@ -33,10 +46,12 @@ void CentralController::handleMessage(cMessage *msg) {
             // Step 2: Compute all paths and build forwarding tables
             computeAllPaths();
             
-            // Step 3: Send forwarding tables to routers
+            // Step 3: Send forwarding tables to routers (encrypted with each router's public key)
             sendForwardingTables();
             
             topologyComplete = true;  // Set flag to prevent re-computation
+            
+            EV << "\n*** Topology processing complete! Ignoring future LINK_STATE messages ***\n";
         }
     }
 }
@@ -70,8 +85,25 @@ void CentralController::receiveLinkStateInfo(BFSRoutingPacket *pkt) {
     }
     
     EV << "Registered nodes: " << registeredNodes.size() << "/" << totalNodes 
+       << ", Public keys: " << routerPublicKeys.size() << "/" << totalNodes
        << ", Unique edges: " << uniqueEdges.size() 
        << ", Total nodes discovered: " << allNodes.size() << "\n";
+}
+
+void CentralController::receiveRouterPublicKey(BFSRoutingPacket *pkt) {
+    int routerId = pkt->getSourceAddress();
+    long long e = pkt->getHopCount();   // Public exponent
+    long long n = pkt->getRequestId();  // Modulus
+    
+    routerPublicKeys[routerId] = std::make_pair(e, n);
+    
+    EV << "\n========================================================\n";
+    EV << "  Controller received RSA Public Key from Router " << routerId << "\n";
+    EV << "========================================================\n";
+    EV << "  Public Key (e): " << e << "\n";
+    EV << "  Modulus (n): " << n << "\n";
+    EV << "  Will use this key to encrypt forwarding table for Router " << routerId << "\n";
+    EV << "========================================================\n\n";
 }
 
 void CentralController::broadcastCompleteTopology() {
@@ -297,29 +329,45 @@ std::vector<int> CentralController::runAstarFromController(int source, int desti
 // Send forwarding tables to routers
 void CentralController::sendForwardingTables() {
     EV << "\n========================================================\n";
-    EV << "  Sending Forwarding Tables to Routers\n";
+    EV << "  Sending Forwarding Tables to Routers (WITH RSA ENCRYPTION)\n";
+    EV << "  Each router's table encrypted with THAT router's public key\n";
     EV << "========================================================\n";
     
     // For each router
     for (int routerId : allNodes) {
         EV << "\nForwarding Table for Node " << routerId << ":\n";
-        EV << "  Destination → NextHop\n";
+        
+        // Get this router's public key
+        if (routerPublicKeys.find(routerId) == routerPublicKeys.end()) {
+            EV << "  ERROR: No public key for Router " << routerId << "!\n";
+            continue;
+        }
+        
+        long long routerE = routerPublicKeys[routerId].first;
+        long long routerN = routerPublicKeys[routerId].second;
+        EV << "  Using Router " << routerId << "'s public key: e=" << routerE << ", n=" << routerN << "\n";
+        EV << "  Destination → NextHop (Plain → Encrypted)\n";
         
         if (forwardingTable.find(routerId) != forwardingTable.end()) {
             for (const auto& entry : forwardingTable[routerId]) {
                 int dest = entry.first;
                 int nextHop = entry.second;
                 
-                EV << "  " << dest << " → " << nextHop << "\n";
+                // ENCRYPT using THIS ROUTER'S public key (e, n)
+                long long encryptedDest = rsaEncrypt(dest, routerE, routerN);
+                long long encryptedNextHop = rsaEncrypt(nextHop, routerE, routerN);
+                
+                EV << "  " << dest << " → " << nextHop 
+                   << " (Encrypted: " << encryptedDest << " → " << encryptedNextHop << ")\n";
                 
                 // Create packet with forwarding entry
                 BFSRoutingPacket *pkt = new BFSRoutingPacket();
                 pkt->setType("FORWARDING_ENTRY");
                 
-                // Use existing fields to encode forwarding info
-                // hopCount = destination, requestId = nextHop
-                pkt->setHopCount(dest);
-                pkt->setRequestId(nextHop);
+                // Send ENCRYPTED node IDs (encrypted with router's public key)
+                // hopCount = encrypted destination, requestId = encrypted nextHop
+                pkt->setHopCount(encryptedDest);
+                pkt->setRequestId(encryptedNextHop);
                 
                 pkt->setSourceAddress(-1);  // From controller
                 pkt->setDestinationAddress(routerId);
@@ -337,7 +385,7 @@ void CentralController::sendForwardingTables() {
             send(completePkt, "toRouter$o", routerId);
             
             EV << "  → Sent " << forwardingTable[routerId].size() 
-               << " forwarding entries to Node " << routerId << "\n";
+               << " encrypted forwarding entries to Node " << routerId << "\n";
         }
     }
     
@@ -380,41 +428,9 @@ long long CentralController::modPow(long long base, long long exp, long long mod
     return result;
 }
 
-// Generate RSA Keys (simple implementation with small primes)
-void CentralController::generateRSAKeys() {
-    // Use small primes > totalNodes (6 nodes)
-    long long p = 11;  // Prime 1
-    long long q = 13;  // Prime 2
-    
-    modulus = p * q;  // n = 143
-    long long phi = (p - 1) * (q - 1);  // φ(n) = 120
-    
-    // Choose e such that 1 < e < φ(n) and gcd(e, φ(n)) = 1
-    publicKey = 7;  // Common choice, coprime with 120
-    
-    // Find d such that (d * e) mod φ(n) = 1
-    // Using extended Euclidean algorithm (simplified)
-    for (long long d = 1; d < phi; d++) {
-        if ((d * publicKey) % phi == 1) {
-            privateKey = d;
-            break;
-        }
-    }
-    
-    EV << "RSA Key Generation Complete:\n";
-    EV << "  p = " << p << ", q = " << q << "\n";
-    EV << "  n = " << modulus << "\n";
-    EV << "  φ(n) = " << phi << "\n";
-    EV << "  Public Key (e) = " << publicKey << "\n";
-    EV << "  Private Key (d) = " << privateKey << "\n";
+// Encrypt a message using a specific router's public key
+long long CentralController::rsaEncrypt(long long message, long long e, long long n) {
+    // Encryption: c = m^e mod n
+    return modPow(message, e, n);
 }
 
-// Encrypt a message using public key
-long long CentralController::rsaEncrypt(long long message) {
-    return modPow(message, publicKey, modulus);
-}
-
-// Decrypt a ciphertext using private key
-long long CentralController::rsaDecrypt(long long ciphertext) {
-    return modPow(ciphertext, privateKey, modulus);
-}

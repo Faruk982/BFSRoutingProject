@@ -43,10 +43,8 @@ class CentralController : public cSimpleModule {
     // Forwarding table: forwarding[source][destination] = nextHop
     std::map<int, std::map<int, int>> forwardingTable;
     
-    // RSA keys for encryption
-    long long publicKey;   // e
-    long long privateKey;  // d
-    long long modulus;     // n
+    // Router public keys: routerPublicKeys[routerId] = (e, n)
+    std::map<int, std::pair<long long, long long>> routerPublicKeys;
     
   protected:
     virtual void initialize() override;
@@ -54,6 +52,7 @@ class CentralController : public cSimpleModule {
     virtual void finish() override;
     
     void receiveLinkStateInfo(BFSRoutingPacket *pkt);
+    void receiveRouterPublicKey(BFSRoutingPacket *pkt);  // NEW: Receive router's public key
     void broadcastCompleteTopology();
     
     // Centralized path computation
@@ -62,10 +61,8 @@ class CentralController : public cSimpleModule {
     std::vector<int> runAstarFromController(int source, int destination);
     void sendForwardingTables();
     
-    // RSA functions
-    void generateRSAKeys();
-    long long rsaEncrypt(long long message);
-    long long rsaDecrypt(long long ciphertext);
+    // RSA functions for encryption
+    long long rsaEncrypt(long long message, long long e, long long n);  // Encrypt with router's public key
     long long modPow(long long base, long long exp, long long mod);
     long long gcd(long long a, long long b);
 };
