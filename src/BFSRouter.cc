@@ -48,27 +48,41 @@ void BFSRouter::handleMessage(cMessage *msg) {
         }
         
         if (strcmp(msg->getName(), "sendTestWithForwarding") == 0) {
-            // Send test packet from 0 to 5 using FORWARDING TABLE
-            int destAddr = 5;
+            // Send test packet from 0 to 8 (UNREACHABLE - different partition!)
+            int destAddr = 8;
             EV << "\n#########################################################\n";
             EV << "# SENDING TEST PACKET (FORWARDING TABLE): Node " << myAddress << " → Node " << destAddr << "\n";
+            EV << "# (Testing unreachable destination in different partition)\n";
             EV << "#########################################################\n";
             
             if (forwardingTable.find(destAddr) != forwardingTable.end()) {
                 int nextHop = forwardingTable[destAddr];
-                int nextGate = findGateToNeighbor(nextHop);
                 
-                EV << "Forwarding table says: To reach " << destAddr << ", send to next hop " << nextHop << "\n";
-                EV << "Using gate " << nextGate << " to reach neighbor " << nextHop << "\n\n";
-                
-                BFSRoutingPacket *pkt = new BFSRoutingPacket("DATA");
-                pkt->setType("DATA");
-                pkt->setSourceAddress(myAddress);
-                pkt->setDestinationAddress(destAddr);
-                pkt->setHopCount(0);
-                pkt->setTimestamp(simTime());
-                
-                send(pkt, "port$o", nextGate);
+                if (nextHop == -1) {
+                    // Destination is unreachable
+                    EV << "\n╔════════════════════════════════════════════════════════╗\n";
+                    EV << "║  ❌ DESTINATION UNREACHABLE ❌                        ║\n";
+                    EV << "╠════════════════════════════════════════════════════════╣\n";
+                    EV << "║  Source:      Node " << myAddress << "                                     ║\n";
+                    EV << "║  Destination: Node " << destAddr << "                                     ║\n";
+                    EV << "║  Reason: No router-level path exists                 ║\n";
+                    EV << "║          (Network partitions are disconnected)       ║\n";
+                    EV << "╚════════════════════════════════════════════════════════╝\n\n";
+                } else {
+                    int nextGate = findGateToNeighbor(nextHop);
+                    
+                    EV << "Forwarding table says: To reach " << destAddr << ", send to next hop " << nextHop << "\n";
+                    EV << "Using gate " << nextGate << " to reach neighbor " << nextHop << "\n\n";
+                    
+                    BFSRoutingPacket *pkt = new BFSRoutingPacket("DATA");
+                    pkt->setType("DATA");
+                    pkt->setSourceAddress(myAddress);
+                    pkt->setDestinationAddress(destAddr);
+                    pkt->setHopCount(0);
+                    pkt->setTimestamp(simTime());
+                    
+                    send(pkt, "port$o", nextGate);
+                }
             } else {
                 EV << "ERROR: No forwarding entry for destination " << destAddr << "\n";
             }
@@ -122,14 +136,29 @@ void BFSRouter::handleMessage(cMessage *msg) {
             // Forward using forwarding table from controller
             if (forwardingTableReady && forwardingTable.find(destAddr) != forwardingTable.end()) {
                 int nextHop = forwardingTable[destAddr];
-                int nextGate = findGateToNeighbor(nextHop);
                 
-                pkt->setHopCount(pkt->getHopCount() + 1);
-                EV << "→ Node " << myAddress << " forwarding to dest=" << destAddr 
-                   << " via nextHop=" << nextHop << " gate=" << nextGate
-                   << " (hop " << pkt->getHopCount() << ") [FORWARDING TABLE]\n";
-                packetsForwarded++;
-                send(pkt, "port$o", nextGate);
+                if (nextHop == -1) {
+                    // Destination is unreachable
+                    EV << "\n╔════════════════════════════════════════════════════════╗\n";
+                    EV << "║  ❌ PACKET DROPPED - UNREACHABLE DESTINATION ❌      ║\n";
+                    EV << "╠════════════════════════════════════════════════════════╣\n";
+                    EV << "║  Current Node: " << myAddress << "                                     ║\n";
+                    EV << "║  Source:       " << srcAddr << "                                     ║\n";
+                    EV << "║  Destination:  " << destAddr << "                                     ║\n";
+                    EV << "║  Reason: No router-level path exists                 ║\n";
+                    EV << "║          (Network partitions are disconnected)       ║\n";
+                    EV << "╚════════════════════════════════════════════════════════╝\n\n";
+                    delete pkt;
+                } else {
+                    int nextGate = findGateToNeighbor(nextHop);
+                    
+                    pkt->setHopCount(pkt->getHopCount() + 1);
+                    EV << "→ Node " << myAddress << " forwarding to dest=" << destAddr 
+                       << " via nextHop=" << nextHop << " gate=" << nextGate
+                       << " (hop " << pkt->getHopCount() << ") [FORWARDING TABLE]\n";
+                    packetsForwarded++;
+                    send(pkt, "port$o", nextGate);
+                }
             } else {
                 EV << "No route to " << destAddr << ". Dropping packet.\n";
                 delete pkt;
@@ -219,6 +248,9 @@ void BFSRouter::generateRSAKeys() {
         case 3: p = 13; q = 17; break;   // Node 3: p=13, q=17
         case 4: p = 7;  q = 19; break;   // Node 4: p=7,  q=19
         case 5: p = 11; q = 19; break;   // Node 5: p=11, q=19
+        case 6: p = 13; q = 19; break;   // Node 6: p=13, q=19 (NEW)
+        case 7: p = 17; q = 19; break;   // Node 7: p=17, q=19 (NEW)
+        case 8: p = 11; q = 23; break;   // Node 8: p=11, q=23 (NEW)
         default: p = 11; q = 13; break;
     }
     

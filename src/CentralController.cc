@@ -175,12 +175,16 @@ void CentralController::broadcastCompleteTopology() {
 void CentralController::initializeNodePositions() {
     // Node positions from BFSRouting.ned file
     // These correspond to the @display("p=x,y") parameters
-    nodePositions[0] = {200, 100};  // node0
-    nodePositions[1] = {600, 100};  // node1
-    nodePositions[2] = {200, 300};  // node2
-    nodePositions[3] = {600, 300};  // node3
-    nodePositions[4] = {200, 500};  // node4
-    nodePositions[5] = {600, 500};  // node5
+    // Spread out more for better visualization
+    nodePositions[0] = {150, 100};   // node0 - top left
+    nodePositions[1] = {700, 100};   // node1 - top center
+    nodePositions[2] = {150, 400};   // node2 - middle left
+    nodePositions[3] = {700, 400};   // node3 - middle center
+    nodePositions[4] = {150, 700};   // node4 - bottom left
+    nodePositions[5] = {700, 700};   // node5 - bottom center
+    nodePositions[6] = {1200, 200};  // node6 - top right
+    nodePositions[7] = {1200, 500};  // node7 - middle right
+    nodePositions[8] = {1200, 800};  // node8 - bottom right
     
     EV << "Node positions initialized for Manhattan distance heuristic:\n";
     for (const auto& entry : nodePositions) {
@@ -280,7 +284,9 @@ void CentralController::computeAllPaths() {
                 
                 pathsComputed++;
             } else {
-                EV << "  Path " << source << " → " << dest << ": NO PATH FOUND\n";
+                // No path exists - mark as unreachable
+                forwardingTable[source][dest] = -1;  // -1 means unreachable
+                EV << "  Path " << source << " → " << dest << ": ❌ UNREACHABLE (no router-level path)\n";
             }
         }
     }
