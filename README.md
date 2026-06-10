@@ -19,25 +19,24 @@ This project implements a Software-Defined Network (SDN) architecture where a ce
 
 The simulation uses an expanded 9-node network (nodes 0 through 8) along with 1 centralized controller.
 
-The network structure consists of an original 6-node mesh network (nodes 0-5) that has been expanded by bridging to a new set of nodes (6, 7, and 8). 
+The network structure consists of an original 6-node mesh network (nodes 0-5) that has been expanded by bridging to a new set of nodes (6, 7, and 8).
 
 ```text
-[Central Controller] connects directly to all nodes (0-8) via SDN Control Plane.
+                                     [Central Controller]
+                           connects directly to all nodes 0-8
 
-    Original Mesh Cluster                  Expansion Branch
+         Left 2x3 mesh                                  Right branch
 
-    Node 0 ──────── Node 1                   Node 6
-      │               │ \                      │
-      │               │   \                    │
-      │               │     \                  │
-    Node 2 ──────── Node 3 ── \ ──────────── Node 7
-      │               │         \              │
-      │               │           \            │
-      │               │             \          │
-    Node 4 ──────── Node 5            \───── Node 8
+   node0 -------- node1                              node6
+      |              |                                  |
+      |              |                                  |
+   node2 -------- node3 ---------------------------- node7
+      |              |                                 |
+      |              |                                 |
+   node4 -------- node5 ---------------------------- node8
 ```
 
-Connections breakdown:
+Exact links in the topology:
 - Original Mesh: (Node 0 to Node 1), (Node 0 to Node 2), (Node 1 to Node 3), (Node 2 to Node 3), (Node 2 to Node 4), (Node 3 to Node 5), (Node 4 to Node 5), (Node 1 to Node 4).
 - New Expansion Links: (Node 6 to Node 7), (Node 7 to Node 8).
 - Bridging Connections: (Node 3 to Node 7), (Node 4 to Node 8).
