@@ -35,11 +35,6 @@ The network structure consists of an original 6-node mesh network (nodes 0-5) th
       |              |                                 |
    node4 -------- node5 ---------------------------- node8
 ```
-
-Exact links in the topology:
-- Original Mesh: (Node 0 to Node 1), (Node 0 to Node 2), (Node 1 to Node 3), (Node 2 to Node 3), (Node 2 to Node 4), (Node 3 to Node 5), (Node 4 to Node 5), (Node 1 to Node 4).
-- New Expansion Links: (Node 6 to Node 7), (Node 7 to Node 8).
-- Bridging Connections: (Node 3 to Node 7), (Node 4 to Node 8).
  
 Total: 9 router nodes (0-8) + 1 centralized controller connected via an SDN-style star topology (all router nodes connect directly to the controller).
 
