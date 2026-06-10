@@ -23,7 +23,7 @@ void BFSRouter::initialize() {
     EV << "Node " << myAddress << " initialized with " << gateSize("port") << " ports\n";
     
     // PHASE 1: Discover local topology and send to central controller
-    scheduleAt(simTime() + 0.1, new cMessage("discoverTopology"));
+    scheduleAt(0.5, new cMessage("discoverTopology"));
 }
 
 void BFSRouter::handleMessage(cMessage *msg) {
@@ -196,7 +196,7 @@ void BFSRouter::discoverLocalTopology() {
     }
     
     // Schedule sending to controller
-    scheduleAt(simTime() + 0.1, new cMessage("sendToController"));
+    scheduleAt(1.0, new cMessage("sendToController"));
 }
 
 // PHASE 2: Send link state to central controller (includes public key)

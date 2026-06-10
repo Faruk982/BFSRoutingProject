@@ -1,8 +1,8 @@
 version 3
-run General-0-20251030-05:39:24-27184
+run General-0-20251030-09:22:12-11576
 attr configname General
-attr datetime 20251030-05:39:24
-attr datetimef 20251030-053924
+attr datetime 20251030-09:22:12
+attr datetimef 20251030-092212
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,14 +10,14 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network bfsroutingproject_new.BFSRoutingNetwork
-attr processid 27184
+attr processid 11576
 attr repetition 0
 attr replication #0
 attr resultdir results
 attr runnumber 0
 attr seedset 0
 config network bfsroutingproject_new.BFSRoutingNetwork
-config sim-time-limit 20s
+config sim-time-limit 40s
 config **.cmdenv-log-level info
 config qtenv-default-config ""
 config qtenv-default-run 1

@@ -1,0 +1,29 @@
+# OMNeT++ Backup Makefiles
+Makefile.*
+src/Makefile.*
+simulations/Makefile.*
+
+# Build artifacts
+out/
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.a
+
+# Simulation results
+results/
+simulations/results/
+*.sca
+*.vec
+*.vci
+
+# OMNeT++ generated message files (Uncomment if you want them ignored, usually they are re-generated)
+# *_m.cc
+# *_m.h
+
+# macOS / Windows hidden files
+.DS_Store
+Thumbs.db
