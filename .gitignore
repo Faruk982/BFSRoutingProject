@@ -4,7 +4,7 @@ src/Makefile.*
 simulations/Makefile.*
 
 # Build artifacts
-out/
+out/clang-release
 *.exe
 *.dll
 *.so
