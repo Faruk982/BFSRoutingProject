@@ -144,33 +144,9 @@ f(n) = g(n) + h(n) // Total estimated cost
 3. The packet is forwarded to the next hop.
 4. The packet is delivered successfully.
 
-## File Structure
-
-BFSRoutingProject_New/
-|-- src/
-|   |-- BFSRouter.h/cc              # Router implementation
-|   |-- CentralController.h/cc      # Controller implementation
-|   |-- BFSRouting.ned              # Network definition
-|   |-- BFSRoutingPacket.msg        # Message definition
-|   |-- BFSRoutingPacket_m.h/cc     # Generated message code
-|   |-- Makefile                    # Build configuration
-|-- simulations/
-|   |-- omnetpp.ini                 # Simulation parameters
-|   |-- package.ned                 # Package definition
-|   |-- run                         # Run script
-|-- README.md                       # This documentation
 
 ## How to Build and Run
 
 ### Prerequisites
 - OMNeT++ 6.2.0 or later
 - Windows (MinGW) or Linux environment
-
-### Build Instructions
-
-1. Open OMNeT++ Shell (Windows):
-   cd d:\downloads\omnetpp-6.2.0-windows-x86_64\omnetpp-6.2.0
-   mingwenv.cmd
-
-2. Navigate to Project:
-   cd samples/BFSRoutingProject_New
